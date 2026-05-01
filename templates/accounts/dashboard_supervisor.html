@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Supervisor — BigBank{% endblock %}
+{% block page_title %}Dashboard Supervisor{% endblock %}
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-blue">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="stat-label">Total Nasabah</div>
+      <div class="stat-value">{{ total_nasabah }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-purple">
+      <div class="stat-icon"><i class="bi bi-person-badge-fill"></i></div>
+      <div class="stat-label">Total Teller</div>
+      <div class="stat-value">{{ total_teller }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-green">
+      <div class="stat-icon"><i class="bi bi-arrow-left-right"></i></div>
+      <div class="stat-label">Transaksi Hari Ini</div>
+      <div class="stat-value">{{ total_transaksi_hari_ini }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card stat-red">
+      <div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="stat-label">Pending Besar</div>
+      <div class="stat-value">{{ pending_besar }}</div>
+      <div style="font-size:.7rem;opacity:.65;margin-top:.2rem;">&ge; Rp 10 juta</div>
+    </div>
+  </div>
+</div>
+
+<!-- Aksi Manajemen -->
+<p style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:#8b95a8;font-weight:600;margin-bottom:.75rem;">Menu Manajemen</p>
+<div class="row g-3">
+  <div class="col-md-4">
+    <a href="{% url 'banking:antrian_transfer' %}" class="menu-card">
+      <div class="menu-icon" style="background:rgba(232,154,60,.12);color:#e89a3c;">
+        <i class="bi bi-send-fill"></i>
+      </div>
+      <div>
+        <div class="menu-title">Antrian Transfer Besar</div>
+        <div class="menu-desc">Approve transfer &ge; Rp 10 juta</div>
+      </div>
+      {% if pending_besar > 0 %}
+      <span style="background:#e05252;color:#fff;font-size:.65rem;font-weight:700;padding:.15em .55em;border-radius:20px;margin-left:auto;">{{ pending_besar }}</span>
+      {% else %}
+      <i class="bi bi-chevron-right ms-auto" style="color:#8b95a8;font-size:.8rem;"></i>
+      {% endif %}
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'banking:antrian_topup' %}" class="menu-card">
+      <div class="menu-icon" style="background:rgba(160,82,224,.12);color:#a052e0;">
+        <i class="bi bi-inbox-fill"></i>
+      </div>
+      <div>
+        <div class="menu-title">Antrian Top-up</div>
+        <div class="menu-desc">Pantau pengisian saldo nasabah</div>
+      </div>
+      <i class="bi bi-chevron-right ms-auto" style="color:#8b95a8;font-size:.8rem;"></i>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'banking:laporan' %}" class="menu-card">
+      <div class="menu-icon" style="background:rgba(82,130,224,.12);color:#5282e0;">
+        <i class="bi bi-bar-chart-fill"></i>
+      </div>
+      <div>
+        <div class="menu-title">Laporan Transaksi</div>
+        <div class="menu-desc">Rekap semua aktivitas banking</div>
+      </div>
+      <i class="bi bi-chevron-right ms-auto" style="color:#8b95a8;font-size:.8rem;"></i>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'banking:kelola_rekening' %}" class="menu-card">
+      <div class="menu-icon" style="background:rgba(201,168,76,.12);color:#c9a84c;">
+        <i class="bi bi-credit-card-2-front-fill"></i>
+      </div>
+      <div>
+        <div class="menu-title">Kelola Rekening</div>
+        <div class="menu-desc">Aktifkan / bekukan rekening</div>
+      </div>
+      <i class="bi bi-chevron-right ms-auto" style="color:#8b95a8;font-size:.8rem;"></i>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'accounts:kelola_user' %}" class="menu-card">
+      <div class="menu-icon" style="background:rgba(61,186,126,.12);color:#3dba7e;">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div>
+        <div class="menu-title">Kelola User</div>
+        <div class="menu-desc">Tambah teller, kelola nasabah</div>
+      </div>
+      <i class="bi bi-chevron-right ms-auto" style="color:#8b95a8;font-size:.8rem;"></i>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'accounts:tambah_user' %}" class="menu-card">
+      <div class="menu-icon" style="background:rgba(224,82,82,.12);color:#e05252;">
+        <i class="bi bi-person-plus-fill"></i>
+      </div>
+      <div>
+        <div class="menu-title">Tambah User Baru</div>
+        <div class="menu-desc">Buat akun teller atau nasabah</div>
+      </div>
+      <i class="bi bi-chevron-right ms-auto" style="color:#8b95a8;font-size:.8rem;"></i>
+    </a>
+  </div>
+</div>
+
+{% endblock %}

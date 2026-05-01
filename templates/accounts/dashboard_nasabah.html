@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — BigBank{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Saldo & Rekening -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div style="background:linear-gradient(135deg,#1c1a0f 0%, #251f0a 50%, #1a1705 100%);border:1px solid rgba(201,168,76,.25);border-radius:16px;padding:1.75rem;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.12),transparent);pointer-events:none;"></div>
+      <div style="position:absolute;bottom:-20px;left:30%;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.06),transparent);pointer-events:none;"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;position:relative;">
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(201,168,76,.6);font-weight:600;margin-bottom:.3rem;">No. Rekening</div>
+          <div style="font-size:1.1rem;font-weight:600;color:#e8c97a;letter-spacing:.1em;">{{ rekening.nomor_rekening|default:"—" }}</div>
+        </div>
+        <div style="width:42px;height:42px;background:rgba(201,168,76,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-credit-card-2-front" style="color:#c9a84c;font-size:1.1rem;"></i>
+        </div>
+      </div>
+
+      <div style="position:relative;">
+        <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(201,168,76,.6);font-weight:600;margin-bottom:.4rem;">Saldo Tersedia</div>
+        <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:#e8c97a;letter-spacing:-.02em;line-height:1;">
+          Rp {{ rekening.saldo|floatformat:"0g"|default:"0" }}
+        </div>
+        <div style="margin-top:.5rem;">
+          {% if rekening.aktif %}
+          <span style="background:rgba(61,186,126,.12);border:1px solid rgba(61,186,126,.25);color:#3dba7e;font-size:.68rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.2em .7em;border-radius:20px;">
+            <i class="bi bi-check-circle me-1"></i>Rekening Aktif
+          </span>
+          {% else %}
+          <span style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);color:#e05252;font-size:.68rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.2em .7em;border-radius:20px;">
+            <i class="bi bi-x-circle me-1"></i>Rekening Dibekukan
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="margin-top:1.25rem;font-size:.8rem;color:rgba(201,168,76,.5);">
+        {{ rekening.pemilik.get_full_name }}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="row g-3 h-100">
+      <div class="col-6">
+        <div class="stat-card stat-green h-100">
+          <div class="stat-icon"><i class="bi bi-arrow-down-circle-fill"></i></div>
+          <div class="stat-label">Total Masuk</div>
+          <div class="stat-value" style="font-size:1.2rem;">Rp 0</div>
+          <div style="font-size:.7rem;opacity:.6;margin-top:.2rem;">30 hari terakhir</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="stat-card stat-red h-100">
+          <div class="stat-icon"><i class="bi bi-arrow-up-circle-fill"></i></div>
+          <div class="stat-label">Total Keluar</div>
+          <div class="stat-value" style="font-size:1.2rem;">Rp 0</div>
+          <div style="font-size:.7rem;opacity:.6;margin-top:.2rem;">30 hari terakhir</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <a href="{% url 'banking:transfer' %}" class="action-card">
+      <div class="action-icon" style="background:rgba(82,130,224,.12);color:#5282e0;">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+      <div class="action-title">Transfer</div>
+      <div class="action-desc">Kirim dana ke rekening lain</div>
+    </a>
+  </div>
+  <div class="col-4">
+    <a href="{% url 'banking:topup' %}" class="action-card">
+      <div class="action-icon" style="background:rgba(61,186,126,.12);color:#3dba7e;">
+        <i class="bi bi-plus-circle-fill"></i>
+      </div>
+      <div class="action-title">Top-up</div>
+      <div class="action-desc">Isi saldo rekening</div>
+    </a>
+  </div>
+  <div class="col-4">
+    <a href="{% url 'banking:mutasi' %}" class="action-card">
+      <div class="action-icon" style="background:rgba(201,168,76,.12);color:#c9a84c;">
+        <i class="bi bi-journal-text"></i>
+      </div>
+      <div class="action-title">Mutasi</div>
+      <div class="action-desc">Lihat riwayat transaksi</div>
+    </a>
+  </div>
+</div>
+
+<!-- Transaksi Terakhir -->
+<div class="card">
+  <div class="card-header" style="justify-content:space-between;">
+    <span><i class="bi bi-clock-history" style="color:#c9a84c;"></i> Transaksi Terakhir</span>
+    <a href="{% url 'banking:mutasi' %}" class="btn btn-outline-silver btn-sm py-1">Lihat Semua <i class="bi bi-arrow-right ms-1"></i></a>
+  </div>
+  <div style="overflow-x:auto;">
+    {% if transaksi_terakhir %}
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Jenis</th>
+          <th>Nominal</th>
+          <th>Keterangan</th>
+          <th>Status</th>
+          <th>Waktu</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in transaksi_terakhir %}
+      <tr>
+        <td>
+          {% if t.jenis == 'transfer' %}
+            {% if t.rekening_tujuan == rekening %}
+              <span class="amount-in"><i class="bi bi-arrow-down-circle me-1"></i>Masuk</span>
+            {% else %}
+              <span class="amount-out"><i class="bi bi-arrow-up-circle me-1"></i>Keluar</span>
+            {% endif %}
+          {% else %}
+            <span style="color:#5282e0;font-weight:600;"><i class="bi bi-plus-circle me-1"></i>Top-up</span>
+          {% endif %}
+        </td>
+        <td class="fw-semibold">Rp {{ t.nominal|floatformat:"0g" }}</td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ t.keterangan|default:"—" }}</td>
+        <td>
+          <span class="badge-status badge-{{ t.status }}">{{ t.get_status_display }}</span>
+        </td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ t.waktu|date:"d M Y H:i" }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center;padding:3rem;color:#8b95a8;">
+      <i class="bi bi-inbox" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
+      Belum ada transaksi
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
