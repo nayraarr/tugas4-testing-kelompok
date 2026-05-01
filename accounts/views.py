@@ -8,8 +8,8 @@ from django.db.models import Q
 from .models import CustomUser
 from .forms import LoginForm, RegisterNasabahForm
 from .decorators import supervisor_only
-# from banking.models import Rekening, Transaksi
-# from banking.services import buat_rekening_baru
+from banking.models import Rekening, Transaksi
+from banking.services import buat_rekening_baru
 
 
 def login_view(request):
@@ -37,7 +37,7 @@ def register_view(request):
     form = RegisterNasabahForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.save()
-        # buat_rekening_baru(user) # auto-buat rekening untuk nasabah baru
+        buat_rekening_baru(user) # auto-buat rekening untuk nasabah baru
         login(request, user)
         messages.success(request, 'Registrasi berhasil! Rekening Anda telah dibuat.')
         return redirect('accounts:dashboard')
@@ -81,24 +81,3 @@ def dashboard_view(request):
             'pending_besar': pending_besar,
         })
     return redirect('accounts:login')
-
-
-@login_required
-def profil_view(request):
-    form = EditProfilForm(request.POST or None, instance=request.user)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Profil berhasil diperbarui.')
-        return redirect('accounts:profil')
-    return render(request, 'accounts/profil.html', {'form': form})
-
-
-@login_required
-def ganti_password_view(request):
-    form = PasswordChangeForm(request.user, request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        user = form.save()
-        update_session_auth_hash(request, user)
-        messages.success(request, 'Password berhasil diubah.')
-        return redirect('accounts:profil')
-    return render(request, 'accounts/ganti_password.html', {'form': form})
