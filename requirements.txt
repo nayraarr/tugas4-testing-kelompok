@@ -1,10 +1,25 @@
-gunicorn
-whitenoise
-psycopg2-binary
-requests
-urllib3
-python-dotenv
+# Production servers
+gunicorn>=22.0
+whitenoise>=6.7
+
+# Database
+psycopg2-binary>=2.9
+
+# HTTP clients
+requests>=2.32
+urllib3>=2.2
+
+# Environment configuration
+python-dotenv>=1.0
+
+# Core Django
 Django>=4.2,<5.0
+
+# Security & sanitization
 bleach>=6.0
+
+# Security - brute force protection
 django-axes>=6.0
+
+# Image processing
 Pillow>=10.0
