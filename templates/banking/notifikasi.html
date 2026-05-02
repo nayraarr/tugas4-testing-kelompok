@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Notifikasi — NexaBank{% endblock %}
+{% block page_title %}Notifikasi{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <div class="card">
+      <div class="card-header" style="justify-content:space-between;">
+        <span><i class="bi bi-bell-fill" style="color:#c9a84c;"></i> Semua Notifikasi</span>
+        <span style="background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.2);color:#c9a84c;font-size:.7rem;font-weight:600;padding:.25em .8em;border-radius:20px;">
+          {{ notif_list.count }} notifikasi
+        </span>
+      </div>
+
+      <div>
+        {% for n in notif_list %}
+        <a href="{{ n.link|default:'#' }}"
+          style="display:flex;justify-content:space-between;align-items:flex-start;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.05);text-decoration:none;transition:.15s;{% if not n.dibaca %}background:rgba(201,168,76,.04);{% endif %}"
+          onmouseover="this.style.background='rgba(255,255,255,.03)'"
+          onmouseout="this.style.background='{% if not n.dibaca %}rgba(201,168,76,.04){% else %}transparent{% endif %}'">
+          <div style="display:flex;align-items:flex-start;gap:.85rem;">
+            <div style="width:36px;height:36px;border-radius:10px;flex-shrink:0;margin-top:.1rem;
+              {% if not n.dibaca %}background:rgba(201,168,76,.12);{% else %}background:rgba(255,255,255,.05);{% endif %}
+              display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-bell{% if not n.dibaca %}-fill{% endif %}"
+                style="font-size:.9rem;{% if not n.dibaca %}color:#c9a84c;{% else %}color:#8b95a8;{% endif %}"></i>
+            </div>
+            <div>
+              {% if not n.dibaca %}
+              <span style="background:rgba(201,168,76,.15);color:#c9a84c;font-size:.65rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.15em .6em;border-radius:20px;margin-bottom:.35rem;display:inline-block;">Baru</span>
+              {% endif %}
+              <p style="margin:0;font-size:.875rem;color:{% if not n.dibaca %}#eef1f6{% else %}#8b95a8{% endif %};">{{ n.pesan }}</p>
+            </div>
+          </div>
+          <span style="color:#8b95a8;font-size:.75rem;white-space:nowrap;margin-left:1rem;margin-top:.1rem;">{{ n.waktu|date:"d M H:i" }}</span>
+        </a>
+        {% empty %}
+        <div style="text-align:center;padding:4rem;color:#8b95a8;">
+          <i class="bi bi-bell-slash" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.3;"></i>
+          Belum ada notifikasi
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

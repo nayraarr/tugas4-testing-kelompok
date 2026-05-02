@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from accounts.decorators import nasabah_only, staff_only, supervisor_only
 from banking import services
 from banking.forms import ApprovalForm, MutasiFilterForm, TransferForm
-from banking.models import Rekening, TopUp, Transaksi
+from banking.models import Notifikasi, Rekening, TopUp, Transaksi
 
 @login_required
 @nasabah_only
@@ -238,3 +238,9 @@ def toggle_rekening_view(request, rekening_id):
         status = 'diaktifkan' if rekening.aktif else 'dinonaktifkan'
         messages.success(request, f'Rekening {rekening.nomor_rekening} berhasil {status}.')
     return redirect('banking:kelola_rekening')
+
+@login_required
+def notifikasi_view(request):
+    notif_list = Notifikasi.objects.filter(user=request.user)
+    notif_list.filter(dibaca=False).update(dibaca=True)
+    return render(request, 'banking/notifikasi.html', {'notif_list': notif_list})

@@ -16,5 +16,7 @@ urlpatterns = [
     
     path('laporan/', views.laporan_view, name='laporan'),
     path('kelola-rekening/', views.kelola_rekening_view, name='kelola_rekening'),
-    path('toggle-rekening/<int:rekening_id>/', views.toggle_rekening_view,  name='toggle_rekening')
+    path('toggle-rekening/<int:rekening_id>/', views.toggle_rekening_view,  name='toggle_rekening'),
+    
+    path('notifikasi/', views.notifikasi_view, name='notifikasi'),
 ]
