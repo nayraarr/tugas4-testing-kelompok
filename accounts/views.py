@@ -6,10 +6,10 @@ from django.contrib import messages
 from django.db.models import Q
 
 from .models import CustomUser
-from .forms import LoginForm, RegisterNasabahForm
+from .forms import EditProfilForm, LoginForm, RegisterNasabahForm, TambahUserForm
 from .decorators import supervisor_only
-# from banking.models import Rekening, Transaksi
-# from banking.services import buat_rekening_baru
+from banking.models import Rekening, Transaksi
+from banking.services import buat_rekening_baru
 
 
 def login_view(request):
@@ -37,7 +37,7 @@ def register_view(request):
     form = RegisterNasabahForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.save()
-        # buat_rekening_baru(user) # auto-buat rekening untuk nasabah baru
+        buat_rekening_baru(user) # auto-buat rekening untuk nasabah baru
         login(request, user)
         messages.success(request, 'Registrasi berhasil! Rekening Anda telah dibuat.')
         return redirect('accounts:dashboard')
@@ -82,7 +82,6 @@ def dashboard_view(request):
         })
     return redirect('accounts:login')
 
-
 @login_required
 def profil_view(request):
     form = EditProfilForm(request.POST or None, instance=request.user)
@@ -102,3 +101,42 @@ def ganti_password_view(request):
         messages.success(request, 'Password berhasil diubah.')
         return redirect('accounts:profil')
     return render(request, 'accounts/ganti_password.html', {'form': form})
+
+@login_required
+@supervisor_only
+def kelola_user_view(request):
+    q = request.GET.get('q', '')
+    role_filter = request.GET.get('role', '')
+    users = CustomUser.objects.exclude(is_superuser=True)
+    if q:
+        users = users.filter(Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q))
+    if role_filter:
+        users = users.filter(role=role_filter)
+    return render(request, 'accounts/kelola_user.html', {'users': users, 'q': q, 'role_filter': role_filter})
+
+
+@login_required
+@supervisor_only
+def tambah_user_view(request):
+    form = TambahUserForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = form.save()
+        if user.role == 'nasabah':
+            from banking.services import buat_rekening_baru
+            buat_rekening_baru(user)
+        messages.success(request, f'User {user.username} berhasil ditambahkan.')
+        return redirect('accounts:kelola_user')
+    return render(request, 'accounts/tambah_user.html', {'form': form})
+
+
+@login_required
+@supervisor_only
+def toggle_aktif_user_view(request, user_id):
+    if request.method == 'POST':
+        user = get_object_or_404(CustomUser, pk=user_id)
+        if user != request.user:
+            user.is_active = not user.is_active
+            user.save()
+            status = 'diaktifkan' if user.is_active else 'dinonaktifkan'
+            messages.success(request, f'User {user.username} berhasil {status}.')
+    return redirect('accounts:kelola_user')

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}Proses Top-up — NexaBank{% endblock %}
+{% block page_title %}Proses Top-up{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+
+    <!-- Breadcrumb -->
+    <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#8b95a8;margin-bottom:1.25rem;">
+      <a href="{% url 'banking:antrian_topup' %}" style="color:#8b95a8;text-decoration:none;display:flex;align-items:center;gap:.3rem;">
+        <i class="bi bi-inbox-fill"></i> Antrian Top-up
+      </a>
+      <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+      <span style="color:#eef1f6;">Detail Proses</span>
+    </div>
+
+    <!-- Detail Card -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <i class="bi bi-file-text-fill" style="color:#c9a84c;"></i> Detail Permintaan Top-up
+      </div>
+      <div style="padding:1.25rem;">
+        <div class="row g-3">
+          <div class="col-6">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">Nasabah</div>
+            <div style="font-weight:600;color:#eef1f6;">{{ topup.rekening.pemilik.get_full_name }}</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">No. Rekening</div>
+            <div style="font-weight:600;font-family:monospace;color:#e8c97a;">{{ topup.rekening.nomor_rekening }}</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">Saldo Saat Ini</div>
+            <div style="font-weight:600;color:#3dba7e;">Rp {{ topup.rekening.saldo|floatformat:"0g" }}</div>
+          </div>
+          <div class="col-6">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">Metode</div>
+            <div style="font-weight:600;color:#eef1f6;">{{ topup.get_metode_display }}</div>
+          </div>
+          <div class="col-12">
+            <div style="border:1px solid rgba(201,168,76,.2);border-radius:10px;background:rgba(201,168,76,.06);padding:1rem;text-align:center;">
+              <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(201,168,76,.6);font-weight:600;margin-bottom:.4rem;">Nominal Top-up</div>
+              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:#e8c97a;letter-spacing:-.02em;">
+                Rp {{ topup.nominal|floatformat:"0g" }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">Waktu Request</div>
+            <div style="color:#8b95a8;font-size:.875rem;">{{ topup.waktu_request|date:"d M Y H:i" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keputusan Card -->
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-check2-square" style="color:#c9a84c;"></i> Keputusan
+      </div>
+      <div style="padding:1.5rem;">
+        <form method="post">
+          {% csrf_token %}
+
+          <!-- Pilihan -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;">
+            <label style="cursor:pointer;">
+              <input type="radio" name="keputusan" value="approve" id="approve" checked style="display:none;">
+              <div class="decision-btn" id="lbl-approve"
+                style="border:2px solid rgba(61,186,126,.4);border-radius:10px;padding:.9rem;text-align:center;background:rgba(61,186,126,.1);transition:.15s;">
+                <i class="bi bi-check-circle-fill" style="font-size:1.3rem;color:#3dba7e;display:block;margin-bottom:.3rem;"></i>
+                <span style="font-weight:700;color:#3dba7e;font-size:.875rem;">Setujui</span>
+              </div>
+            </label>
+            <label style="cursor:pointer;">
+              <input type="radio" name="keputusan" value="reject" id="reject" style="display:none;">
+              <div class="decision-btn" id="lbl-reject"
+                style="border:2px solid rgba(255,255,255,.08);border-radius:10px;padding:.9rem;text-align:center;background:transparent;transition:.15s;">
+                <i class="bi bi-x-circle-fill" style="font-size:1.3rem;color:#8b95a8;display:block;margin-bottom:.3rem;"></i>
+                <span style="font-weight:700;color:#8b95a8;font-size:.875rem;">Tolak</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Catatan <span style="font-weight:400;color:#8b95a8;">(opsional)</span></label>
+            {{ form.catatan }}
+          </div>
+
+          <div style="display:flex;gap:.75rem;">
+            <button type="submit" class="btn btn-gold px-4 py-2">
+              <i class="bi bi-check-lg me-1"></i> Konfirmasi Keputusan
+            </button>
+            <a href="{% url 'banking:antrian_topup' %}" class="btn btn-outline-silver px-4">Batal</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+const approve = document.getElementById('approve');
+const reject  = document.getElementById('reject');
+const lblA = document.getElementById('lbl-approve');
+const lblR = document.getElementById('lbl-reject');
+
+function updateDecision() {
+  if (approve.checked) {
+    lblA.style.border = '2px solid rgba(61,186,126,.6)';
+    lblA.style.background = 'rgba(61,186,126,.12)';
+    lblA.querySelector('i').style.color = '#3dba7e';
+    lblA.querySelector('span').style.color = '#3dba7e';
+    lblR.style.border = '2px solid rgba(255,255,255,.08)';
+    lblR.style.background = 'transparent';
+    lblR.querySelector('i').style.color = '#8b95a8';
+    lblR.querySelector('span').style.color = '#8b95a8';
+  } else {
+    lblR.style.border = '2px solid rgba(224,82,82,.5)';
+    lblR.style.background = 'rgba(224,82,82,.1)';
+    lblR.querySelector('i').style.color = '#e05252';
+    lblR.querySelector('span').style.color = '#e05252';
+    lblA.style.border = '2px solid rgba(255,255,255,.08)';
+    lblA.style.background = 'transparent';
+    lblA.querySelector('i').style.color = '#8b95a8';
+    lblA.querySelector('span').style.color = '#8b95a8';
+  }
+}
+approve.addEventListener('change', updateDecision);
+reject.addEventListener('change', updateDecision);
+document.querySelectorAll('.decision-btn').forEach(btn => {
+  btn.addEventListener('click', () => setTimeout(updateDecision, 10));
+});
+</script>
+{% endblock %}
