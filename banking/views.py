@@ -1,11 +1,12 @@
 from datetime import timedelta, timezone
+from django.contrib import messages
+from django.db.models import Q, Sum
 from decimal import Decimal
-from pyexpat.errors import messages
 
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 
-from accounts.decorators import nasabah_only, staff_only
+from accounts.decorators import nasabah_only, staff_only, supervisor_only
 from banking import services
 from banking.forms import ApprovalForm, MutasiFilterForm, TransferForm
 from banking.models import Rekening, TopUp, Transaksi
@@ -174,3 +175,66 @@ def proses_transfer_view(request, transaksi_id):
         return redirect('banking:antrian_transfer')
 
     return render(request, 'banking/proses_transfer.html', {'transaksi': transaksi, 'form': form})
+
+@login_required
+@supervisor_only
+def laporan_view(request):
+    from accounts.models import CustomUser
+    periode = request.GET.get('periode', '30')
+    teller_filter = request.GET.get('teller', '')
+
+    cutoff = timezone.now() - timedelta(days=int(periode)) if periode != 'all' else None
+    transaksi = Transaksi.objects.filter(status='approved')
+    topup = TopUp.objects.filter(status='selesai')
+
+    if cutoff:
+        transaksi = transaksi.filter(waktu__gte=cutoff)
+        topup = topup.filter(waktu_proses__gte=cutoff)
+    if teller_filter:
+        transaksi = transaksi.filter(diproses_oleh_id=teller_filter)
+        topup = topup.filter(diproses_oleh_id=teller_filter)
+
+    total_transfer = transaksi.filter(jenis='transfer').aggregate(t=Sum('nominal'))['t'] or 0
+    total_topup = topup.aggregate(t=Sum('nominal'))['t'] or 0
+    jumlah_transfer = transaksi.filter(jenis='transfer').count()
+    jumlah_topup = topup.count()
+
+    tellers = CustomUser.objects.filter(role='teller')
+
+    return render(request, 'banking/laporan.html', {
+        'transaksi': transaksi.order_by('-waktu')[:50],
+        'total_transfer': total_transfer,
+        'total_topup': total_topup,
+        'jumlah_transfer': jumlah_transfer,
+        'jumlah_topup': jumlah_topup,
+        'tellers': tellers,
+        'periode': periode,
+        'teller_filter': teller_filter,
+    })
+
+
+@login_required
+@supervisor_only
+def kelola_rekening_view(request):
+    q = request.GET.get('q', '')
+    rekening_list = Rekening.objects.select_related('pemilik').all()
+    if q:
+        rekening_list = rekening_list.filter(
+            Q(nomor_rekening__icontains=q) |
+            Q(pemilik__first_name__icontains=q) |
+            Q(pemilik__last_name__icontains=q) |
+            Q(pemilik__username__icontains=q)
+        )
+    return render(request, 'banking/kelola_rekening.html', {'rekening_list': rekening_list, 'q': q})
+
+
+@login_required
+@supervisor_only
+def toggle_rekening_view(request, rekening_id):
+    if request.method == 'POST':
+        rekening = get_object_or_404(Rekening, pk=rekening_id)
+        rekening.aktif = not rekening.aktif
+        rekening.save()
+        status = 'diaktifkan' if rekening.aktif else 'dinonaktifkan'
+        messages.success(request, f'Rekening {rekening.nomor_rekening} berhasil {status}.')
+    return redirect('banking:kelola_rekening')

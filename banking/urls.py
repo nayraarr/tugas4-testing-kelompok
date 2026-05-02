@@ -13,4 +13,8 @@ urlpatterns = [
     path('proses-topup/<int:topup_id>/', views.proses_topup_view, name='proses_topup'),
     path('antrian-transfer/', views.antrian_transfer_view, name='antrian_transfer'),
     path('proses-transfer/<int:transaksi_id>/', views.proses_transfer_view, name='proses_transfer'),
+    
+    path('laporan/', views.laporan_view, name='laporan'),
+    path('kelola-rekening/', views.kelola_rekening_view, name='kelola_rekening'),
+    path('toggle-rekening/<int:rekening_id>/', views.toggle_rekening_view,  name='toggle_rekening')
 ]

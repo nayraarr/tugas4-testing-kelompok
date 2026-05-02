@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Kelola Rekening — NexaBank{% endblock %}
+{% block page_title %}Kelola Rekening{% endblock %}
+{% block content %}
+
+<div class="card">
+  <!-- Search Header -->
+  <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label">Cari Rekening</label>
+        <div style="position:relative;">
+          <i class="bi bi-search" style="position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:#8b95a8;font-size:.85rem;"></i>
+          <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="No. rekening atau nama nasabah..." style="padding-left:2.3rem;">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-silver w-100"><i class="bi bi-search me-1"></i>Cari</button>
+      </div>
+      {% if q %}
+      <div class="col-md-2">
+        <a href="{% url 'banking:kelola_rekening' %}" class="btn btn-outline-silver w-100">Reset</a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>No. Rekening</th>
+          <th>Pemilik</th>
+          <th>Saldo</th>
+          <th>Status</th>
+          <th>Dibuat</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in rekening_list %}
+      <tr>
+        <td style="font-family:monospace;font-weight:700;color:#e8c97a;">{{ r.nomor_rekening }}</td>
+        <td>
+          <div style="font-weight:600;font-size:.875rem;">{{ r.pemilik.get_full_name|default:r.pemilik.username }}</div>
+          <div style="color:#8b95a8;font-size:.78rem;">{{ r.pemilik.email }}</div>
+        </td>
+        <td style="font-weight:700;{% if r.saldo > 0 %}color:#3dba7e;{% else %}color:#8b95a8;{% endif %}">
+          Rp {{ r.saldo|floatformat:"0g" }}
+        </td>
+        <td>
+          {% if r.aktif %}
+          <span class="badge-status badge-aktif">Aktif</span>
+          {% else %}
+          <span class="badge-status badge-nonaktif">Dibekukan</span>
+          {% endif %}
+        </td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ r.dibuat_pada|date:"d M Y" }}</td>
+        <td>
+          <form method="post" action="{% url 'banking:toggle_rekening' r.pk %}">
+            {% csrf_token %}
+            {% if r.aktif %}
+            <button class="btn btn-danger-soft btn-sm py-1 px-2" style="font-size:.75rem;">
+              <i class="bi bi-lock-fill me-1"></i>Bekukan
+            </button>
+            {% else %}
+            <button class="btn btn-success-soft btn-sm py-1 px-2" style="font-size:.75rem;">
+              <i class="bi bi-unlock-fill me-1"></i>Aktifkan
+            </button>
+            {% endif %}
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:3rem;color:#8b95a8;">
+          <i class="bi bi-credit-card" style="font-size:2rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
+          Tidak ada rekening ditemukan
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
