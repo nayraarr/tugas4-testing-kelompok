@@ -44,3 +44,20 @@ class TransferForm(forms.Form):
         if self.rekening_asal and nominal > self.rekening_asal.saldo:
             raise forms.ValidationError('Saldo tidak mencukupi.')
         return nominal
+
+class MutasiFilterForm(forms.Form):
+    PERIODE_CHOICES = [
+        ('7',  '7 Hari Terakhir'),
+        ('30', '30 Hari Terakhir'),
+        ('90', '3 Bulan Terakhir'),
+        ('all','Semua'),
+    ]
+    periode = forms.ChoiceField(
+        choices=PERIODE_CHOICES, required=False,
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'})
+    )
+    jenis = forms.ChoiceField(
+        choices=[('', 'Semua Jenis'), ('transfer', 'Transfer'), ('topup', 'Top-up')],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'})
+    )
