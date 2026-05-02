@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 
 from accounts.decorators import nasabah_only
 from banking.forms import MutasiFilterForm, TransferForm
-from banking.models import Rekening, Transaksi
+from banking.models import Rekening, TopUp, Transaksi
 
 @login_required
 @nasabah_only
@@ -74,3 +74,28 @@ def mutasi_view(request):
         'total_masuk': total_masuk,
         'total_keluar': total_keluar,
     })
+
+@login_required
+@nasabah_only
+def topup_view(request):
+    rekening = get_object_or_404(Rekening, pemilik=request.user, aktif=True)
+    form = TopUpForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        TopUp.objects.create(
+            rekening=rekening,
+            nominal=form.cleaned_data['nominal'],
+            metode=form.cleaned_data['metode'],
+            status='pending',
+        )
+        messages.success(request, 'Permintaan top-up berhasil diajukan. Teller akan segera memprosesnya.')
+        return redirect('banking:mutasi')
+
+    return render(request, 'banking/topup.html', {'form': form, 'rekening': rekening})
+
+@login_required
+@nasabah_only
+def riwayat_topup_view(request):
+    rekening = get_object_or_404(Rekening, pemilik=request.user)
+    topup_list = TopUp.objects.filter(rekening=rekening)
+    return render(request, 'banking/riwayat_topup.html', {'rekening': rekening, 'topup_list': topup_list})

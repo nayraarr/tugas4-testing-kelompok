@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Top-up Saldo — NexaBank{% endblock %}
+{% block page_title %}Top-up Saldo{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+
+    <!-- Info Rekening -->
+    <div style="background:linear-gradient(135deg,#0d1f17,#122a1e);border:1px solid rgba(61,186,126,.2);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(61,186,126,.6);font-weight:600;margin-bottom:.25rem;">Rekening</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:#a8f0cc;letter-spacing:.06em;">{{ rekening.nomor_rekening }}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(61,186,126,.6);font-weight:600;margin-bottom:.25rem;">Saldo Saat Ini</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:#3dba7e;">Rp {{ rekening.saldo|floatformat:"0g" }}</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-plus-circle-fill" style="color:#3dba7e;"></i> Form Top-up Saldo
+      </div>
+      <div style="padding:1.5rem;">
+        <form method="post">
+          {% csrf_token %}
+
+          <!-- Nominal Cepat -->
+          <div style="margin-bottom:1.25rem;">
+            <label class="form-label">Pilih Nominal Cepat</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;">
+              {% for val, label in quick_amounts %}
+              <button type="button" class="quick-nominal" data-val="{{ val }}"
+                style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;text-align:center;">
+                Rp {{ label }}
+              </button>
+              {% empty %}
+              {% for val, label in "100000:100rb,250000:250rb,500000:500rb,1000000:1jt,2000000:2jt,5000000:5jt"|split:"," %}{% endfor %}
+              <button type="button" class="quick-nominal" data-val="100000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 100.000</button>
+              <button type="button" class="quick-nominal" data-val="250000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 250.000</button>
+              <button type="button" class="quick-nominal" data-val="500000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 500.000</button>
+              <button type="button" class="quick-nominal" data-val="1000000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 1.000.000</button>
+              <button type="button" class="quick-nominal" data-val="2000000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 2.000.000</button>
+              <button type="button" class="quick-nominal" data-val="5000000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 5.000.000</button>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Nominal Top-up</label>
+            {{ form.nominal }}
+            {% if form.nominal.errors %}
+            <div style="color:#e05252;font-size:.78rem;margin-top:.3rem;">{{ form.nominal.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Metode Top-up</label>
+            {{ form.metode }}
+          </div>
+
+          <div style="background:rgba(82,130,224,.07);border:1px solid rgba(82,130,224,.18);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;display:flex;gap:.65rem;align-items:flex-start;">
+            <i class="bi bi-info-circle-fill" style="color:#5282e0;flex-shrink:0;font-size:.9rem;margin-top:.1rem;"></i>
+            <div style="font-size:.8rem;color:#8b95a8;line-height:1.6;">
+              Permintaan top-up akan diproses oleh Teller. Minimum top-up <strong style="color:#eef1f6;">Rp 50.000</strong>.
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-gold w-100 py-2" style="font-size:.9rem;">
+            <i class="bi bi-plus-circle-fill me-2"></i>Ajukan Top-up
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+document.querySelectorAll('.quick-nominal').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelector('[name=nominal]').value = this.dataset.val;
+    document.querySelectorAll('.quick-nominal').forEach(b => {
+      b.style.borderColor = 'rgba(255,255,255,.1)';
+      b.style.color = '#8b95a8';
+      b.style.background = 'rgba(255,255,255,.04)';
+    });
+    this.style.borderColor = 'rgba(201,168,76,.5)';
+    this.style.color = '#e8c97a';
+    this.style.background = 'rgba(201,168,76,.08)';
+  });
+});
+</script>
+{% endblock %}

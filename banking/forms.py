@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django import forms
 from decimal import Decimal
-from .models import Rekening
+from .models import Rekening, TopUp
 
 
 class TransferForm(forms.Form):
@@ -60,4 +60,16 @@ class MutasiFilterForm(forms.Form):
         choices=[('', 'Semua Jenis'), ('transfer', 'Transfer'), ('topup', 'Top-up')],
         required=False,
         widget=forms.Select(attrs={'class': 'form-select form-select-sm'})
+    )
+    
+class TopUpForm(forms.Form):
+    nominal = forms.DecimalField(
+        max_digits=15, decimal_places=2, min_value=Decimal('50000'),
+        label='Nominal Top-up',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Minimum Rp 50.000'})
+    )
+    metode = forms.ChoiceField(
+        choices=TopUp.METODE_CHOICES,
+        label='Metode Top-up',
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
