@@ -5,8 +5,9 @@ from pyexpat.errors import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required
 
-from accounts.decorators import nasabah_only
-from banking.forms import MutasiFilterForm, TransferForm
+from accounts.decorators import nasabah_only, staff_only
+from banking import services
+from banking.forms import ApprovalForm, MutasiFilterForm, TransferForm
 from banking.models import Rekening, TopUp, Transaksi
 
 @login_required
@@ -99,3 +100,30 @@ def riwayat_topup_view(request):
     rekening = get_object_or_404(Rekening, pemilik=request.user)
     topup_list = TopUp.objects.filter(rekening=rekening)
     return render(request, 'banking/riwayat_topup.html', {'rekening': rekening, 'topup_list': topup_list})
+
+@login_required
+@staff_only
+def antrian_topup_view(request):
+    pending = TopUp.objects.filter(status='pending').select_related('rekening__pemilik')
+    selesai = TopUp.objects.exclude(status='pending').select_related('rekening__pemilik', 'diproses_oleh')[:20]
+    return render(request, 'banking/antrian_topup.html', {'pending': pending, 'selesai': selesai})
+
+
+@login_required
+@staff_only
+def proses_topup_view(request, topup_id):
+    topup = get_object_or_404(TopUp, pk=topup_id, status='pending')
+    form = ApprovalForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        disetujui = form.cleaned_data['keputusan'] == 'approve'
+        catatan = form.cleaned_data.get('catatan', '')
+        try:
+            services.proses_topup(topup, request.user, disetujui=disetujui, catatan=catatan)
+            status_msg = 'disetujui' if disetujui else 'ditolak'
+            messages.success(request, f'Top-up berhasil {status_msg}.')
+        except ValueError as e:
+            messages.error(request, str(e))
+        return redirect('banking:antrian_topup')
+
+    return render(request, 'banking/proses_topup.html', {'topup': topup, 'form': form})

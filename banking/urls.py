@@ -8,4 +8,7 @@ urlpatterns = [
     path('mutasi/', views.mutasi_view, name='mutasi'),
     path('topup/', views.topup_view, name='topup'),
     path('riwayat-topup/', views.riwayat_topup_view, name='riwayat_topup'),
+    
+    path('antrian-topup/', views.antrian_topup_view, name='antrian_topup'),
+    path('proses-topup/<int:topup_id>/', views.proses_topup_view, name='proses_topup'),
 ]

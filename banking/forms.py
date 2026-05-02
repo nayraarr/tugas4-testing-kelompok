@@ -73,3 +73,14 @@ class TopUpForm(forms.Form):
         label='Metode Top-up',
         widget=forms.Select(attrs={'class': 'form-select'})
     )
+
+class ApprovalForm(forms.Form):
+    keputusan = forms.ChoiceField(
+        choices=[('approve', 'Setujui'), ('reject', 'Tolak')],
+        widget=forms.RadioSelect
+    )
+    catatan = forms.CharField(
+        max_length=300, required=False,
+        label='Catatan',
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Catatan opsional'})
+    )
