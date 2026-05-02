@@ -127,3 +127,50 @@ def proses_topup_view(request, topup_id):
         return redirect('banking:antrian_topup')
 
     return render(request, 'banking/proses_topup.html', {'topup': topup, 'form': form})
+
+@login_required
+@staff_only
+def antrian_transfer_view(request):
+    user = request.user
+    if user.is_teller:
+        # Teller hanya lihat yang < 10 juta
+        pending = Transaksi.objects.filter(
+            jenis='transfer', status='pending', nominal__lt=10_000_000
+        ).select_related('rekening_asal__pemilik', 'rekening_tujuan__pemilik')
+    else:
+        # Supervisor lihat semua
+        pending = Transaksi.objects.filter(
+            jenis='transfer', status='pending'
+        ).select_related('rekening_asal__pemilik', 'rekening_tujuan__pemilik')
+
+    selesai = Transaksi.objects.filter(
+        jenis='transfer'
+    ).exclude(status='pending').select_related(
+        'rekening_asal__pemilik', 'rekening_tujuan__pemilik', 'diproses_oleh'
+    )[:20]
+
+    return render(request, 'banking/antrian_transfer.html', {'pending': pending, 'selesai': selesai})
+
+
+@login_required
+@staff_only
+def proses_transfer_view(request, transaksi_id):
+    transaksi = get_object_or_404(Transaksi, pk=transaksi_id, jenis='transfer', status='pending')
+
+    # Cek hak akses: transfer >= 10jt hanya supervisor
+    if transaksi.butuh_supervisor and request.user.is_teller:
+        messages.error(request, 'Transfer ini memerlukan persetujuan Supervisor.')
+        return redirect('banking:antrian_transfer')
+
+    form = ApprovalForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        disetujui = form.cleaned_data['keputusan'] == 'approve'
+        catatan = form.cleaned_data.get('catatan', '')
+        try:
+            services.proses_transfer(transaksi, request.user, disetujui=disetujui, catatan=catatan)
+            messages.success(request, f'Transfer berhasil {"disetujui" if disetujui else "ditolak"}.')
+        except ValueError as e:
+            messages.error(request, str(e))
+        return redirect('banking:antrian_transfer')
+
+    return render(request, 'banking/proses_transfer.html', {'transaksi': transaksi, 'form': form})

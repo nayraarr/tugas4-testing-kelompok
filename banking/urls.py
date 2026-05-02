@@ -11,4 +11,6 @@ urlpatterns = [
     
     path('antrian-topup/', views.antrian_topup_view, name='antrian_topup'),
     path('proses-topup/<int:topup_id>/', views.proses_topup_view, name='proses_topup'),
+    path('antrian-transfer/', views.antrian_transfer_view, name='antrian_transfer'),
+    path('proses-transfer/<int:transaksi_id>/', views.proses_transfer_view, name='proses_transfer'),
 ]
