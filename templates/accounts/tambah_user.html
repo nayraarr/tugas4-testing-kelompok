@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Tambah User — NexaBank{% endblock %}
+{% block page_title %}Tambah User Baru{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <!-- Breadcrumb -->
+    <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#8b95a8;margin-bottom:1.25rem;">
+      <a href="{% url 'accounts:kelola_user' %}" style="color:#8b95a8;text-decoration:none;display:flex;align-items:center;gap:.3rem;">
+        <i class="bi bi-people-fill"></i> Kelola User
+      </a>
+      <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+      <span style="color:#eef1f6;">Tambah User Baru</span>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-person-plus-fill" style="color:#c9a84c;"></i> Form Pendaftaran User
+      </div>
+      <div style="padding:1.5rem;">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            {% for field in form %}
+            <div class="col-md-6">
+              <label class="form-label">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+              <div style="color:#e05252;font-size:.78rem;margin-top:.3rem;display:flex;align-items:center;gap:.3rem;">
+                <i class="bi bi-x-circle-fill"></i> {{ field.errors.0 }}
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+
+          {% if form.non_field_errors %}
+          <div style="background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.2);border-radius:9px;padding:.75rem 1rem;margin-top:1rem;color:#e05252;font-size:.82rem;display:flex;align-items:center;gap:.5rem;">
+            <i class="bi bi-exclamation-circle-fill"></i> {{ form.non_field_errors.0 }}
+          </div>
+          {% endif %}
+
+          <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1.25rem;margin-top:1.25rem;display:flex;gap:.75rem;">
+            <button type="submit" class="btn btn-gold px-4">
+              <i class="bi bi-person-plus me-1"></i> Tambah User
+            </button>
+            <a href="{% url 'accounts:kelola_user' %}" class="btn btn-outline-silver px-4">Batal</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Info box -->
+    <div style="background:rgba(82,130,224,.06);border:1px solid rgba(82,130,224,.15);border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;display:flex;gap:.75rem;align-items:flex-start;">
+      <i class="bi bi-info-circle-fill" style="color:#5282e0;flex-shrink:0;margin-top:.1rem;"></i>
+      <div style="font-size:.8rem;color:#8b95a8;line-height:1.6;">
+        Jika role yang dipilih adalah <strong style="color:#eef1f6;">Nasabah</strong>, rekening bank akan dibuat secara otomatis setelah user berhasil ditambahkan.
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

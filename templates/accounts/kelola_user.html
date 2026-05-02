@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Kelola User — NexaBank{% endblock %}
+{% block page_title %}Kelola User{% endblock %}
+{% block content %}
+
+<div class="card">
+  <!-- Header -->
+  <div class="card-header" style="justify-content:space-between;">
+    <span><i class="bi bi-people-fill" style="color:#c9a84c;"></i> Daftar User</span>
+    <a href="{% url 'accounts:tambah_user' %}" class="btn btn-gold btn-sm py-1 px-3">
+      <i class="bi bi-plus-lg me-1"></i> Tambah User
+    </a>
+  </div>
+
+  <!-- Filter -->
+  <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label">Cari</label>
+        <div style="position:relative;">
+          <i class="bi bi-search" style="position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:#8b95a8;font-size:.85rem;"></i>
+          <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Username atau nama..." style="padding-left:2.3rem;">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Role</label>
+        <select name="role" class="form-select">
+          <option value="">Semua Role</option>
+          <option value="nasabah"    {% if role_filter == 'nasabah' %}selected{% endif %}>Nasabah</option>
+          <option value="teller"     {% if role_filter == 'teller' %}selected{% endif %}>Teller</option>
+          <option value="supervisor" {% if role_filter == 'supervisor' %}selected{% endif %}>Supervisor</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-silver w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+      </div>
+      {% if q or role_filter %}
+      <div class="col-md-2">
+        <a href="{% url 'accounts:kelola_user' %}" class="btn btn-outline-silver w-100">Reset</a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Nama Lengkap</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for u in users %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:.65rem;">
+            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1a2235,#242f45);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#c9a84c;flex-shrink:0;">
+              {{ u.get_full_name|default:u.username|slice:":1"|upper }}
+            </div>
+            <span style="font-weight:600;">{{ u.username }}</span>
+          </div>
+        </td>
+        <td>{{ u.get_full_name|default:"—" }}</td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ u.email|default:"—" }}</td>
+        <td><span class="role-tag role-{{ u.role }}">{{ u.get_role_display }}</span></td>
+        <td>
+          {% if u.is_active %}
+          <span class="badge-status badge-aktif">Aktif</span>
+          {% else %}
+          <span class="badge-status badge-nonaktif">Nonaktif</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if u != request.user %}
+          <form method="post" action="{% url 'accounts:toggle_aktif' u.pk %}" class="d-inline">
+            {% csrf_token %}
+            {% if u.is_active %}
+            <button class="btn btn-danger-soft btn-sm py-1 px-2" style="font-size:.75rem;">
+              <i class="bi bi-pause-circle me-1"></i>Nonaktifkan
+            </button>
+            {% else %}
+            <button class="btn btn-success-soft btn-sm py-1 px-2" style="font-size:.75rem;">
+              <i class="bi bi-play-circle me-1"></i>Aktifkan
+            </button>
+            {% endif %}
+          </form>
+          {% else %}
+          <span style="color:#8b95a8;font-size:.78rem;font-style:italic;">Akun Saya</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:3rem;color:#8b95a8;">
+          <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
+          Tidak ada user ditemukan
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
