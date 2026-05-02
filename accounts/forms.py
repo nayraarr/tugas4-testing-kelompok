@@ -87,5 +87,9 @@ class EditProfilForm(forms.ModelForm):
             'email':         forms.EmailInput(attrs={'class': 'form-control'}),
             'no_telp':       forms.TextInput(attrs={'class': 'form-control'}),
             'alamat':        forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'tanggal_lahir': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tanggal_lahir': forms.DateInput(
+                attrs={'class': 'form-control', 'type': 'date'},
+                format='%Y-%m-%d'   # ← ini kunci agar tanggal tampil benar di input
+            ),
         }
+        

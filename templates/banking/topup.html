@@ -31,20 +31,12 @@
           <div style="margin-bottom:1.25rem;">
             <label class="form-label">Pilih Nominal Cepat</label>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;">
-              {% for val, label in quick_amounts %}
-              <button type="button" class="quick-nominal" data-val="{{ val }}"
-                style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;text-align:center;">
-                Rp {{ label }}
-              </button>
-              {% empty %}
-              {% for val, label in "100000:100rb,250000:250rb,500000:500rb,1000000:1jt,2000000:2jt,5000000:5jt"|split:"," %}{% endfor %}
               <button type="button" class="quick-nominal" data-val="100000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 100.000</button>
               <button type="button" class="quick-nominal" data-val="250000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 250.000</button>
               <button type="button" class="quick-nominal" data-val="500000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 500.000</button>
               <button type="button" class="quick-nominal" data-val="1000000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 1.000.000</button>
               <button type="button" class="quick-nominal" data-val="2000000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 2.000.000</button>
               <button type="button" class="quick-nominal" data-val="5000000" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:.55rem .5rem;color:#8b95a8;font-size:.8rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:.15s;">Rp 5.000.000</button>
-              {% endfor %}
             </div>
           </div>
 

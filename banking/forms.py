@@ -84,3 +84,32 @@ class ApprovalForm(forms.Form):
         label='Catatan',
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Catatan opsional'})
     )
+    
+class TopUpForm(forms.Form):
+    nominal = forms.DecimalField(
+        max_digits=15, decimal_places=2, min_value=Decimal('50000'),
+        label='Nominal Top-up',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Minimum Rp 50.000'})
+    )
+    metode = forms.ChoiceField(
+        choices=TopUp.METODE_CHOICES,
+        label='Metode Top-up',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+class MutasiFilterForm(forms.Form):
+    PERIODE_CHOICES = [
+        ('7',  '7 Hari Terakhir'),
+        ('30', '30 Hari Terakhir'),
+        ('90', '3 Bulan Terakhir'),
+        ('all','Semua'),
+    ]
+    periode = forms.ChoiceField(
+        choices=PERIODE_CHOICES, required=False,
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'})
+    )
+    jenis = forms.ChoiceField(
+        choices=[('', 'Semua Jenis'), ('transfer', 'Transfer'), ('topup', 'Top-up')],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'})
+    )
