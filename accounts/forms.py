@@ -76,3 +76,16 @@ class TambahUserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+    
+class EditProfilForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'email', 'no_telp', 'alamat', 'tanggal_lahir']
+        widgets = {
+            'first_name':    forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name':     forms.TextInput(attrs={'class': 'form-control'}),
+            'email':         forms.EmailInput(attrs={'class': 'form-control'}),
+            'no_telp':       forms.TextInput(attrs={'class': 'form-control'}),
+            'alamat':        forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'tanggal_lahir': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
