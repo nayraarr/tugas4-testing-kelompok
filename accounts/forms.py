@@ -109,4 +109,19 @@ class EditProfilForm(forms.ModelForm):
                 format='%Y-%m-%d'   # ← ini kunci agar tanggal tampil benar di input
             ),
         }
+
+    def clean_first_name(self):       
+        value = self.cleaned_data.get('first_name', '')
+        validate_safe_input(value)
+        return value
+
+    def clean_last_name(self):    
+        value = self.cleaned_data.get('last_name', '')
+        validate_safe_input(value)
+        return value
+
+    def clean_alamat(self):         
+        value = self.cleaned_data.get('alamat', '')
+        validate_safe_input(value)
+        return value
         

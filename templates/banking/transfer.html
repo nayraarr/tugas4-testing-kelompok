@@ -47,6 +47,9 @@
           <div class="mb-4">
             <label class="form-label">{{ form.keterangan.label }}</label>
             {{ form.keterangan }}
+            {% if form.keterangan.errors %}
+            <div style="color:#e05252;font-size:.78rem;margin-top:.3rem;">{{ form.keterangan.errors.0 }}</div>
+            {% endif %}
           </div>
 
           <!-- Info box -->
