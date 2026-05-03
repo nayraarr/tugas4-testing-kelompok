@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Kelola User — NexaBank{% endblock %}
+{% block title %}Kelola User — BigBank{% endblock %}
 {% block page_title %}Kelola User{% endblock %}
 {% block content %}
 
@@ -78,7 +78,7 @@
         </td>
         <td>
           {% if u != request.user %}
-          <form method="post" action="{% url 'accounts:toggle_aktif' u.pk %}" class="d-inline">
+          <form method="post" action="{% url 'accounts:toggle_aktif_user' u.pk %}" class="d-inline">
             {% csrf_token %}
             {% if u.is_active %}
             <button class="btn btn-danger-soft btn-sm py-1 px-2" style="font-size:.75rem;">
