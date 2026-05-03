@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_protect
 
 from .permission import khusus_supervisor
 from .models import CustomUser
@@ -116,6 +117,7 @@ def _eksekusi_toggle_user(aktor, target_id: int):
 
 
 # VIEWS FUNCTIONS
+@csrf_protect
 def halaman_login(request):
     if request.user.is_authenticated:
         return redirect('accounts:dashboard')
@@ -124,14 +126,14 @@ def halaman_login(request):
         return redirect('accounts:dashboard')
     return render(request, 'accounts/login.html', {'form': form})
 
-
+@csrf_protect
 def halaman_logout(request):
     if request.method == 'POST':
         logout(request)
         messages.success(request, 'Anda telah berhasil logout.')
     return redirect('accounts:login')
 
-
+@csrf_protect
 def halaman_registrasi(request):
     if request.user.is_authenticated:
         return redirect('accounts:dashboard')
@@ -150,8 +152,8 @@ def halaman_beranda(request):
         return redirect('accounts:login')
     return renderer(request)
 
-
 @login_required
+@csrf_protect
 def halaman_profil(request):
     form = EditProfilForm(request.POST or None, instance=request.user)
     if request.method == 'POST' and form.is_valid():
@@ -160,8 +162,8 @@ def halaman_profil(request):
         return redirect('accounts:profil')
     return render(request, 'accounts/profil.html', {'form': form})
 
-
 @login_required
+@csrf_protect
 def halaman_ganti_sandi(request):
     form = PasswordChangeForm(request.user, request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -184,6 +186,7 @@ def halaman_kelola_pengguna(request):
 
 
 @login_required
+@csrf_protect
 @khusus_supervisor
 def halaman_tambah_pengguna(request):
     form = TambahUserForm(request.POST or None)
@@ -191,8 +194,8 @@ def halaman_tambah_pengguna(request):
         return redirect('accounts:kelola_user')
     return render(request, 'accounts/tambah_user.html', {'form': form})
 
-
 @login_required
+@csrf_protect
 @khusus_supervisor
 def aksi_toggle_pengguna(request, user_id):
     if request.method == 'POST':

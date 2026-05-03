@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum, QuerySet
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_protect
 
 from accounts.decorators import nasabah_only, staff_only, supervisor_only
 from accounts.permission import khusus_nasabah, khusus_staf, khusus_supervisor
@@ -113,8 +114,8 @@ def _jalankan_verifikasi(request, form, objek, fungsi_operasi, url_redirect: str
         return redirect(url_redirect)
     return None  # Lanjut render template
 
-
 @login_required
+@csrf_protect
 @khusus_nasabah
 def halaman_transfer(request):
     rekening = get_object_or_404(Rekening, pemilik=request.user, aktif=True)
@@ -167,8 +168,8 @@ def halaman_mutasi(request):
         **ringkasan,
     })
 
-
 @login_required
+@csrf_protect
 @khusus_nasabah
 def halaman_topup(request):
     rekening = get_object_or_404(Rekening, pemilik=request.user, aktif=True)
@@ -206,6 +207,7 @@ def halaman_antrian_setor(request):
 
 
 @login_required
+@csrf_protect
 @khusus_staf
 def halaman_proses_setor(request, topup_id):
     topup = get_object_or_404(TopUp, pk=topup_id, status='pending')
@@ -226,8 +228,8 @@ def halaman_antrian_kirim(request):
         'pending': pending, 'selesai': selesai
     })
 
-
 @login_required
+@csrf_protect
 @khusus_staf
 def halaman_proses_kirim(request, transaksi_id):
     transaksi = get_object_or_404(Transaksi, pk=transaksi_id, jenis='transfer', status='pending')
@@ -276,6 +278,7 @@ def halaman_kelola_rekening(request):
 
 
 @login_required
+@csrf_protect
 @khusus_supervisor
 def aksi_toggle_rekening(request, rekening_id):
     if request.method == 'POST':
