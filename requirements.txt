@@ -23,3 +23,5 @@ django-axes>=6.0
 
 # Image processing
 Pillow>=10.0
+
+bleach

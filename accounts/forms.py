@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from .models import CustomUser
+from banking.validators import validate_safe_input
 
 class RegisterNasabahForm(forms.ModelForm):
     password1 = forms.CharField(
@@ -32,6 +33,21 @@ class RegisterNasabahForm(forms.ModelForm):
             raise forms.ValidationError('Password tidak cocok.')
         return cleaned
 
+    def clean_first_name(self):
+        value = self.cleaned_data.get('first_name', '')
+        validate_safe_input(value)
+        return value
+
+    def clean_last_name(self):
+        value = self.cleaned_data.get('last_name', '')
+        validate_safe_input(value)
+        return value
+
+    def clean_alamat(self):
+        value = self.cleaned_data.get('alamat', '')
+        validate_safe_input(value)
+        return value
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data['password1'])
@@ -42,6 +58,7 @@ class RegisterNasabahForm(forms.ModelForm):
     
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
+        validators=[validate_safe_input],
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
     )
     password = forms.CharField(

@@ -3,21 +3,24 @@ from decimal import Decimal
 from django import forms
 from decimal import Decimal
 from .models import Rekening, TopUp
-
+from banking.validators import validate_safe_input, validate_nominal, validate_no_rekening
 
 class TransferForm(forms.Form):
     rekening_tujuan = forms.CharField(
         max_length=10,
+        validators=[validate_no_rekening],
         label='Nomor Rekening Tujuan',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '10 digit nomor rekening'})
     )
     nominal = forms.DecimalField(
         max_digits=15, decimal_places=2, min_value=Decimal('10000'),
+        validators=[validate_nominal],
         label='Nominal Transfer',
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Minimum Rp 10.000'})
     )
     keterangan = forms.CharField(
         max_length=200, required=False,
+        validators=[validate_safe_input],
         label='Keterangan',
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opsional'})
     )
@@ -81,6 +84,7 @@ class ApprovalForm(forms.Form):
     )
     catatan = forms.CharField(
         max_length=300, required=False,
+        validators=[validate_safe_input],
         label='Catatan',
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Catatan opsional'})
     )

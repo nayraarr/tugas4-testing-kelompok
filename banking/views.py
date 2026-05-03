@@ -1,3 +1,4 @@
+import bleach
 from datetime import timedelta
 
 from django.contrib import messages
@@ -104,7 +105,7 @@ def _jalankan_verifikasi(request, form, objek, fungsi_operasi, url_redirect: str
     """
     if request.method == 'POST' and form.is_valid():
         disetujui = form.cleaned_data['keputusan'] == 'approve'
-        catatan   = form.cleaned_data.get('catatan', '')
+        catatan  = bleach.clean(form.cleaned_data.get('catatan', ''), tags=[], strip=True)
         try:
             fungsi_operasi(objek, request.user, disetujui=disetujui, catatan=catatan)
             label = 'disetujui' if disetujui else 'ditolak'
@@ -123,7 +124,7 @@ def halaman_transfer(request):
 
     if request.method == 'POST' and form.is_valid():
         nominal    = form.cleaned_data['nominal']
-        keterangan = form.cleaned_data.get('keterangan', '')
+        keterangan = bleach.clean(form.cleaned_data.get('keterangan', ''), tags=[], strip=True)
         Transaksi.objects.create(
             rekening_asal=rekening,
             rekening_tujuan=form.rekening_tujuan_obj,
