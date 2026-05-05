@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Akun Terkunci — BigBank{% endblock %}
+
+{% block auth_content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse-ring {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: .4; }
+    }
+
+    .lock-icon-wrap {
+        width: 80px; height: 80px;
+        margin: 0 auto 1.75rem;
+        position: relative;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .lock-icon-wrap::before {
+        content: '';
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(224,82,82,.35);
+        animation: pulse-ring 2s ease-in-out infinite;
+    }
+    .lock-icon-bg {
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        background: rgba(224,82,82,.12);
+        border: 1px solid rgba(224,82,82,.25);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .lock-icon-bg i { font-size: 2rem; color: #e05252; }
+
+    .lockout-card {
+        width: 100%;
+        max-width: 380px;
+        animation: fadeUp .5s ease both;
+    }
+
+    .btn-back {
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        width: 100%; padding: .7rem 1rem;
+        background: rgba(201,168,76,.1);
+        border: 1px solid rgba(201,168,76,.25);
+        border-radius: 10px; color: #c9a84c;
+        font-weight: 600; text-decoration: none;
+        transition: all .2s;
+    }
+    .btn-back:hover {
+        background: rgba(201,168,76,.18);
+        color: #e8c97a;
+    }
+</style>
+
+<div class="min-vh-100 d-flex" style="background: #0a0f1e;">
+
+  <!-- Left panel — decorative -->
+  <div class="d-none d-lg-flex flex-column justify-content-between p-5" style="width:45%; background: linear-gradient(160deg, #111827 0%, #0d1626 100%); border-right: 1px solid rgba(201,168,76,.08); position: relative; overflow: hidden;">
+    <!-- Background Decorative Circles -->
+    <div style="position:absolute; top:-80px; right:-80px; width:320px; height:320px; border-radius:50%; border: 1px solid rgba(201,168,76,.08);"></div>
+    <div style="position:absolute; top:40px; right:40px; width:200px; height:200px; border-radius:50%; border: 1px solid rgba(201,168,76,.06);"></div>
+    <div style="position:absolute; bottom:-60px; left:-60px; width:240px; height:240px; border-radius:50%; border: 1px solid rgba(201,168,76,.06);"></div>
+
+    <!-- Brand -->
+    <div style="position:relative; z-index:1;">
+      <div style="display:flex; align-items:center; gap:.65rem; margin-bottom: 3rem;">
+        <div style="width:40px;height:40px;background:linear-gradient(135deg,#c9a84c,#e8c97a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#0a0f1e;">
+          <i class="bi bi-bank"></i>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:#eef1f6;">BigBank</span>
+      </div>
+
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;color:#eef1f6;line-height:1.2;margin-bottom:1rem;">
+        Perbankan<br>
+        <span style="color:#c9a84c;">Digital</span> yang<br>
+        Terpercaya.
+      </h2>
+      <p style="color:#8b95a8;font-size:.93rem;max-width:300px;line-height:1.7;">
+        Kelola keuangan dengan aman dan mudah. Transfer, top-up, dan pantau saldo kapan saja.
+      </p>
+    </div>
+
+    <!-- Feature List -->
+    <div style="position:relative;z-index:1;">
+      <div style="display:flex;flex-direction:column;gap:.75rem;">
+        <div style="display:flex;align-items:center;gap:.75rem;color:#8b95a8;font-size:.82rem;">
+          <div style="width:28px;height:28px;border-radius:7px;background:rgba(61,186,126,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-shield-check" style="color:#3dba7e;font-size:.85rem;"></i>
+          </div>
+          Transfer aman dengan verifikasi berlapis
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;color:#8b95a8;font-size:.82rem;">
+          <div style="width:28px;height:28px;border-radius:7px;background:rgba(201,168,76,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-clock-history" style="color:#c9a84c;font-size:.85rem;"></i>
+          </div>
+          Riwayat transaksi lengkap dan real-time
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;color:#8b95a8;font-size:.82rem;">
+          <div style="width:28px;height:28px;border-radius:7px;background:rgba(82,130,224,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-bell" style="color:#5282e0;font-size:.85rem;"></i>
+          </div>
+          Notifikasi setiap aktivitas akun Anda
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — KONTEN LOCKOUT KAMU -->
+  <div class="flex-grow-1 d-flex align-items-center justify-content-center p-4">
+    <div class="lockout-card">
+      <div class="lock-icon-wrap">
+        <div class="lock-icon-bg">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+      </div>
+
+      <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;color:#eef1f6;text-align:center;margin-bottom:.5rem;">Akun Sementara Terkunci</h3>
+      <p style="color:#8b95a8;font-size:.875rem;text-align:center;margin-bottom:1.75rem;">Terlalu banyak percobaan login yang gagal</p>
+
+      <div style="background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.75rem;display:flex;gap:.75rem;align-items:flex-start;">
+        <i class="bi bi-info-circle-fill" style="color:#c9a84c;margin-top:.1rem;"></i>
+        <p style="color:#8b95a8;font-size:.82rem;line-height:1.65;margin:0;">
+          Akun Anda terkunci sementara karena <strong>5 kali percobaan login gagal</strong>.
+          Tunggu sebelum mencoba kembali, atau hubungi Teller BigBank untuk bantuan reset akun.
+        </p>
+      </div>
+
+      <div style="text-align:center;margin-bottom:1.75rem;">
+        <div style="color:#8b95a8;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;">Coba lagi dalam</div>
+        <div id="timer" style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:#c9a84c;letter-spacing:.04em;">60:00</div>
+      </div>
+
+      <a href="{% url 'accounts:login' %}" class="btn-back">
+        <i class="bi bi-arrow-left"></i> Kembali ke Halaman Login
+      </a>
+
+      <div style="border-top:1px solid rgba(255,255,255,.08);margin:1.5rem 0;"></div>
+      <p style="text-align:center;color:#8b95a8;font-size:.78rem;">Butuh bantuan? Hubungi Teller di kantor cabang terdekat.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const MINUTES = 60;
+    let total = MINUTES * 60;
+    const el = document.getElementById('timer');
+    const key = 'bigbank_lockout_start';
+    const stored = sessionStorage.getItem(key);
+    const start = stored ? parseInt(stored) : Date.now();
+    if (!stored) sessionStorage.setItem(key, start);
+
+    function tick() {
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      const remaining = Math.max(0, total - elapsed);
+      const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+      const s = String(remaining % 60).padStart(2, '0');
+      el.textContent = m + ':' + s;
+      if (remaining > 0) setTimeout(tick, 1000);
+      else { el.textContent = '00:00'; sessionStorage.removeItem(key); }
+    }
+    tick();
+  })();
+</script>
+{% endblock %}
