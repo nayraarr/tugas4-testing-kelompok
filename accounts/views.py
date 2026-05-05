@@ -7,6 +7,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.cache import never_cache
 
 from .permission import khusus_supervisor
 from .models import CustomUser
@@ -142,7 +143,7 @@ def halaman_registrasi(request):
         return redirect('accounts:dashboard')
     return render(request, 'accounts/register.html', {'form': form})
 
-
+@never_cache
 @login_required
 def halaman_beranda(request):
     """Dispatch ke renderer yang sesuai berdasarkan peran pengguna."""
@@ -152,6 +153,7 @@ def halaman_beranda(request):
         return redirect('accounts:login')
     return renderer(request)
 
+@never_cache
 @login_required(login_url='/login/')
 @csrf_protect
 def halaman_profil(request):
