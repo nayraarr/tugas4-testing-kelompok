@@ -18,12 +18,13 @@ def login_view(request):
     form = LoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
-        login(request, user)
-        messages.success(request, f'Selamat datang, {user.get_full_name() or user.username}!')
-        return redirect('accounts:dashboard')
+        if user:
+            login(request, user)
+            messages.success(request, f'Selamat datang, {user.get_full_name() or user.username}!')
+            return redirect('accounts:dashboard')
     return render(request, 'accounts/login.html', {'form': form})
 
-
+@login_required
 def logout_view(request):
     if request.method == 'POST':
         logout(request)
@@ -44,7 +45,7 @@ def register_view(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
-@login_required
+@login_required(login_url='/login/')
 def dashboard_view(request):
     user = request.user
     if user.is_nasabah:
@@ -83,7 +84,7 @@ def dashboard_view(request):
     return redirect('accounts:login')
 
 
-@login_required
+@login_required(login_url='/login/')
 def profil_view(request):
     form = EditProfilForm(request.POST or None, instance=request.user)
     if request.method == 'POST' and form.is_valid():
@@ -93,7 +94,7 @@ def profil_view(request):
     return render(request, 'accounts/profil.html', {'form': form})
 
 
-@login_required
+@login_required(login_url='/login/')
 def ganti_password_view(request):
     form = PasswordChangeForm(request.user, request.POST or None)
     if request.method == 'POST' and form.is_valid():
