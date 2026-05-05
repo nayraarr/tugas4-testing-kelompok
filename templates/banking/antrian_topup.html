@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Antrian Top-up — BigBank{% endblock %}
+{% block page_title %}Antrian Top-up{% endblock %}
+{% block content %}
+
+<!-- Menunggu Diproses -->
+<div class="card mb-4">
+  <div class="card-header" style="justify-content:space-between;">
+    <span><i class="bi bi-inbox-fill" style="color:#a052e0;"></i> Menunggu Diproses</span>
+    {% if pending %}
+    <span style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);color:#e05252;font-size:.7rem;font-weight:700;padding:.25em .8em;border-radius:20px;">
+      {{ pending|length }} antrian
+    </span>
+    {% else %}
+    <span style="background:rgba(61,186,126,.12);border:1px solid rgba(61,186,126,.25);color:#3dba7e;font-size:.7rem;font-weight:700;padding:.25em .8em;border-radius:20px;">
+      Kosong
+    </span>
+    {% endif %}
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Nasabah</th>
+          <th>No. Rekening</th>
+          <th>Nominal</th>
+          <th>Metode</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in pending %}
+      <tr>
+        <td style="color:#8b95a8;font-size:.82rem;white-space:nowrap;">{{ t.waktu_request|date:"d M H:i" }}</td>
+        <td style="font-weight:600;">{{ t.rekening.pemilik.get_full_name }}</td>
+        <td style="font-family:monospace;font-size:.85rem;color:#e8c97a;">{{ t.rekening.nomor_rekening }}</td>
+        <td class="amount-in" style="font-weight:700;">Rp {{ t.nominal|floatformat:"0g" }}</td>
+        <td style="color:#8b95a8;font-size:.85rem;">{{ t.get_metode_display }}</td>
+        <td>
+          <a href="{% url 'banking:proses_topup' t.pk %}" class="btn btn-gold btn-sm py-1 px-3" style="font-size:.78rem;">
+            <i class="bi bi-play-fill me-1"></i>Proses
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:2.5rem;color:#8b95a8;">
+          <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.6rem;opacity:.4;"></i>
+          Tidak ada antrian top-up
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Sudah Diproses -->
+<div class="card">
+  <div class="card-header">
+    <i class="bi bi-check-circle-fill" style="color:#3dba7e;"></i> Sudah Diproses
+    <span style="color:#8b95a8;font-size:.75rem;font-weight:400;margin-left:.4rem;">(20 terakhir)</span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Nasabah</th>
+          <th>Nominal</th>
+          <th>Status</th>
+          <th>Diproses Oleh</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in selesai %}
+      <tr>
+        <td style="color:#8b95a8;font-size:.82rem;white-space:nowrap;">{{ t.waktu_request|date:"d M H:i" }}</td>
+        <td style="font-size:.875rem;">{{ t.rekening.pemilik.get_full_name }}</td>
+        <td style="font-weight:600;">Rp {{ t.nominal|floatformat:"0g" }}</td>
+        <td><span class="badge-status badge-{{ t.status }}">{{ t.get_status_display }}</span></td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ t.diproses_oleh.get_full_name|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align:center;padding:2rem;color:#8b95a8;">Belum ada.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

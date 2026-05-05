@@ -1,33 +1,10 @@
-from functools import wraps
-from django.shortcuts import redirect
-from django.contrib import messages
+from accounts.permission import ( 
+    khusus_nasabah    as nasabah_only,
+    khusus_teller     as teller_only,
+    khusus_supervisor as supervisor_only,
+    khusus_staf       as staff_only,
+    registri_akses,
+)
 
-
-def role_required(*roles):
-    def decorator(view_func):
-        @wraps(view_func)
-        def _wrapped(request, *args, **kwargs):
-            if not request.user.is_authenticated:
-                return redirect('accounts:login')
-            if request.user.role not in roles:
-                messages.error(request, 'Anda tidak memiliki akses ke halaman ini.')
-                return redirect('accounts:dashboard')
-            return view_func(request, *args, **kwargs)
-        return _wrapped
-    return decorator
-
-
-def nasabah_only(view_func):
-    return role_required('nasabah')(view_func)
-
-
-def teller_only(view_func):
-    return role_required('teller')(view_func)
-
-
-def supervisor_only(view_func):
-    return role_required('supervisor')(view_func)
-
-
-def staff_only(view_func):
-    return role_required('teller', 'supervisor')(view_func)
+def role_required(*peran):
+    return registri_akses.buat_dekorator(*peran)

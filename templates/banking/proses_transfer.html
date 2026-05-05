@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}Proses Transfer — BigBank{% endblock %}
+{% block page_title %}Proses Transfer{% endblock %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+
+    <!-- Breadcrumb -->
+    <div style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:#8b95a8;margin-bottom:1.25rem;">
+      <a href="{% url 'banking:antrian_transfer' %}" style="color:#8b95a8;text-decoration:none;display:flex;align-items:center;gap:.3rem;">
+        <i class="bi bi-send-fill"></i> Antrian Transfer
+      </a>
+      <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+      <span style="color:#eef1f6;">Detail Proses</span>
+    </div>
+
+    <!-- Alert supervisor -->
+    {% if transaksi.butuh_supervisor and user.is_supervisor %}
+    <div style="background:rgba(232,154,60,.08);border:1px solid rgba(232,154,60,.25);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem;">
+      <i class="bi bi-shield-fill-exclamation" style="color:#e89a3c;font-size:1.1rem;flex-shrink:0;"></i>
+      <div style="font-size:.83rem;color:#f0c87a;">
+        <strong>Transfer nominal besar</strong> — memerlukan persetujuan Supervisor Bank.
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Detail Card -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <i class="bi bi-file-text-fill" style="color:#c9a84c;"></i> Detail Transfer
+      </div>
+      <div style="padding:1.5rem;">
+
+        <!-- Transfer Arrow Visualization -->
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;">
+          <div style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);border-radius:10px;padding:.9rem;">
+            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">Rekening Asal</div>
+            <div style="font-family:monospace;font-weight:700;color:#e8c97a;font-size:.9rem;">{{ transaksi.rekening_asal.nomor_rekening }}</div>
+            <div style="font-size:.8rem;color:#8b95a8;margin-top:.2rem;">{{ transaksi.rekening_asal.pemilik.get_full_name }}</div>
+            <div style="font-size:.78rem;color:#3dba7e;margin-top:.2rem;">Saldo: Rp {{ transaksi.rekening_asal.saldo|floatformat:"0g" }}</div>
+          </div>
+          <div style="flex-shrink:0;width:32px;height:32px;background:rgba(201,168,76,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-arrow-right" style="color:#c9a84c;font-size:.9rem;"></i>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(82,130,224,.15);border-radius:10px;padding:.9rem;">
+            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">Rekening Tujuan</div>
+            <div style="font-family:monospace;font-weight:700;color:#a8c8f0;font-size:.9rem;">{{ transaksi.rekening_tujuan.nomor_rekening }}</div>
+            <div style="font-size:.8rem;color:#8b95a8;margin-top:.2rem;">{{ transaksi.rekening_tujuan.pemilik.get_full_name }}</div>
+          </div>
+        </div>
+
+        <!-- Nominal -->
+        <div style="border:1px solid {% if transaksi.butuh_supervisor %}rgba(232,154,60,.3){% else %}rgba(201,168,76,.2){% endif %};border-radius:10px;background:{% if transaksi.butuh_supervisor %}rgba(232,154,60,.06){% else %}rgba(201,168,76,.06){% endif %};padding:1rem;text-align:center;margin-bottom:1rem;">
+          <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:{% if transaksi.butuh_supervisor %}rgba(232,154,60,.6){% else %}rgba(201,168,76,.6){% endif %};font-weight:600;margin-bottom:.4rem;">
+            Nominal Transfer
+            {% if transaksi.butuh_supervisor %}<span style="background:rgba(232,154,60,.15);color:#e89a3c;font-size:.65rem;font-weight:700;padding:.15em .55em;border-radius:20px;margin-left:.4rem;">Besar</span>{% endif %}
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:{% if transaksi.butuh_supervisor %}#e89a3c{% else %}#e8c97a{% endif %};letter-spacing:-.02em;">
+            Rp {{ transaksi.nominal|floatformat:"0g" }}
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">Keterangan</div>
+            <div style="color:#eef1f6;font-size:.875rem;">{{ transaksi.keterangan|default:"—" }}</div>
+          </div>
+          <div class="col-12">
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#8b95a8;font-weight:600;margin-bottom:.3rem;">Waktu Pengajuan</div>
+            <div style="color:#8b95a8;font-size:.875rem;">{{ transaksi.waktu|date:"d M Y H:i" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keputusan Card -->
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-check2-square" style="color:#c9a84c;"></i> Keputusan
+      </div>
+      <div style="padding:1.5rem;">
+        <form method="post">
+          {% csrf_token %}
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;">
+            <label style="cursor:pointer;">
+              <input type="radio" name="keputusan" value="approve" id="approve" checked style="display:none;">
+              <div id="lbl-approve" style="border:2px solid rgba(61,186,126,.4);border-radius:10px;padding:.9rem;text-align:center;background:rgba(61,186,126,.1);transition:.15s;">
+                <i class="bi bi-check-circle-fill" style="font-size:1.3rem;color:#3dba7e;display:block;margin-bottom:.3rem;"></i>
+                <span style="font-weight:700;color:#3dba7e;font-size:.875rem;">Setujui</span>
+              </div>
+            </label>
+            <label style="cursor:pointer;">
+              <input type="radio" name="keputusan" value="reject" id="reject" style="display:none;">
+              <div id="lbl-reject" style="border:2px solid rgba(255,255,255,.08);border-radius:10px;padding:.9rem;text-align:center;background:transparent;transition:.15s;">
+                <i class="bi bi-x-circle-fill" style="font-size:1.3rem;color:#8b95a8;display:block;margin-bottom:.3rem;"></i>
+                <span style="font-weight:700;color:#8b95a8;font-size:.875rem;">Tolak</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Catatan Staff <span style="font-weight:400;color:#8b95a8;">(opsional)</span></label>
+            {{ form.catatan }}
+          </div>
+
+          <div style="display:flex;gap:.75rem;">
+            <button type="submit" class="btn btn-gold px-4 py-2">
+              <i class="bi bi-check-lg me-1"></i> Konfirmasi Keputusan
+            </button>
+            <a href="{% url 'banking:antrian_transfer' %}" class="btn btn-outline-silver px-4">Batal</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+const approve = document.getElementById('approve');
+const reject  = document.getElementById('reject');
+const lblA = document.getElementById('lbl-approve');
+const lblR = document.getElementById('lbl-reject');
+function updateDecision() {
+  if (approve.checked) {
+    lblA.style.cssText += ';border:2px solid rgba(61,186,126,.6);background:rgba(61,186,126,.12);';
+    lblA.querySelector('i').style.color = '#3dba7e';
+    lblA.querySelector('span').style.color = '#3dba7e';
+    lblR.style.cssText += ';border:2px solid rgba(255,255,255,.08);background:transparent;';
+    lblR.querySelector('i').style.color = '#8b95a8';
+    lblR.querySelector('span').style.color = '#8b95a8';
+  } else {
+    lblR.style.cssText += ';border:2px solid rgba(224,82,82,.5);background:rgba(224,82,82,.1);';
+    lblR.querySelector('i').style.color = '#e05252';
+    lblR.querySelector('span').style.color = '#e05252';
+    lblA.style.cssText += ';border:2px solid rgba(255,255,255,.08);background:transparent;';
+    lblA.querySelector('i').style.color = '#8b95a8';
+    lblA.querySelector('span').style.color = '#8b95a8';
+  }
+}
+[approve, reject].forEach(r => r.addEventListener('change', updateDecision));
+document.querySelectorAll('#lbl-approve, #lbl-reject').forEach(b => b.addEventListener('click', () => setTimeout(updateDecision, 10)));
+</script>
+{% endblock %}

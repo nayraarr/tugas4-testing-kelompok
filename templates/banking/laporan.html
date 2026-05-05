@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Laporan Transaksi — BigBank{% endblock %}
+{% block page_title %}Laporan Transaksi{% endblock %}
+{% block content %}
+
+<!-- Filter -->
+<div class="card mb-4">
+  <div style="padding:1.25rem 1.5rem;">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Periode</label>
+        <select name="periode" class="form-select">
+          <option value="7"   {% if periode == '7' %}selected{% endif %}>7 Hari Terakhir</option>
+          <option value="30"  {% if periode == '30' %}selected{% endif %}>30 Hari Terakhir</option>
+          <option value="90"  {% if periode == '90' %}selected{% endif %}>3 Bulan Terakhir</option>
+          <option value="all" {% if periode == 'all' %}selected{% endif %}>Semua Waktu</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Filter Teller</label>
+        <select name="teller" class="form-select">
+          <option value="">Semua Teller</option>
+          {% for t in tellers %}
+          <option value="{{ t.pk }}" {% if teller_filter == t.pk|stringformat:"s" %}selected{% endif %}>
+            {{ t.get_full_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-gold w-100"><i class="bi bi-funnel-fill me-1"></i>Terapkan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card stat-blue">
+      <div class="stat-icon"><i class="bi bi-arrow-left-right"></i></div>
+      <div class="stat-label">Total Transfer</div>
+      <div class="stat-value" style="font-size:1.2rem;">Rp {{ total_transfer|floatformat:"0g" }}</div>
+      <div style="font-size:.72rem;opacity:.65;margin-top:.3rem;">{{ jumlah_transfer }} transaksi</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card stat-green">
+      <div class="stat-icon"><i class="bi bi-plus-circle-fill"></i></div>
+      <div class="stat-label">Total Top-up</div>
+      <div class="stat-value" style="font-size:1.2rem;">Rp {{ total_topup|floatformat:"0g" }}</div>
+      <div style="font-size:.72rem;opacity:.65;margin-top:.3rem;">{{ jumlah_topup }} transaksi</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card stat-gold">
+      <div class="stat-icon"><i class="bi bi-collection-fill"></i></div>
+      <div class="stat-label">Total Semua</div>
+      <div class="stat-value" style="font-size:1.2rem;">Rp {{ total_transfer|add:total_topup|floatformat:"0g" }}</div>
+      <div style="font-size:.72rem;opacity:.65;margin-top:.3rem;">{{ jumlah_transfer|add:jumlah_topup }} transaksi</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card stat-purple">
+      <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+      <div class="stat-label">Diproses</div>
+      <div class="stat-value" style="font-size:1.2rem;">{{ transaksi|length }}</div>
+      <div style="font-size:.72rem;opacity:.65;margin-top:.3rem;">dalam tampilan ini</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabel -->
+<div class="card">
+  <div class="card-header">
+    <i class="bi bi-table" style="color:#c9a84c;"></i> Riwayat Transaksi
+    <span style="color:#8b95a8;font-size:.75rem;font-weight:400;margin-left:.4rem;">(50 terbaru)</span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Jenis</th>
+          <th>Dari</th>
+          <th>Ke</th>
+          <th>Nominal</th>
+          <th>Diproses Oleh</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in transaksi %}
+      <tr>
+        <td style="color:#8b95a8;font-size:.82rem;white-space:nowrap;">{{ t.waktu|date:"d M Y H:i" }}</td>
+        <td>
+          {% if t.jenis == 'transfer' %}
+          <span style="color:#a8c8f0;font-size:.82rem;font-weight:600;">
+            <i class="bi bi-arrow-left-right me-1"></i>Transfer
+          </span>
+          {% else %}
+          <span style="color:#a8f0cc;font-size:.82rem;font-weight:600;">
+            <i class="bi bi-plus-circle me-1"></i>Top-up
+          </span>
+          {% endif %}
+        </td>
+        <td style="font-family:monospace;font-size:.82rem;color:#e8c97a;">{{ t.rekening_asal.nomor_rekening|default:"—" }}</td>
+        <td style="font-family:monospace;font-size:.82rem;color:#a8c8f0;">{{ t.rekening_tujuan.nomor_rekening|default:"—" }}</td>
+        <td style="font-weight:700;">Rp {{ t.nominal|floatformat:"0g" }}</td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ t.diproses_oleh.get_full_name|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:3rem;color:#8b95a8;">
+          <i class="bi bi-bar-chart" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
+          Tidak ada transaksi pada periode ini
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
