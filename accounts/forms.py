@@ -86,6 +86,21 @@ class TambahUserForm(forms.ModelForm):
         if cleaned.get('password1') != cleaned.get('password2'):
             raise forms.ValidationError('Password tidak cocok.')
         return cleaned
+    
+    def clean_first_name(self):
+        value = self.cleaned_data.get('first_name', '')
+        validate_safe_input(value)
+        return value
+
+    def clean_last_name(self):
+        value = self.cleaned_data.get('last_name', '')
+        validate_safe_input(value)
+        return value
+    
+    def clean_no_telp(self):
+        value = self.cleaned_data.get('no_telp', '')
+        validate_safe_input(value)
+        return value
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -122,6 +137,11 @@ class EditProfilForm(forms.ModelForm):
 
     def clean_alamat(self):         
         value = self.cleaned_data.get('alamat', '')
+        validate_safe_input(value)
+        return value
+    
+    def clean_email(self):
+        value = self.cleaned_data.get('email', '')
         validate_safe_input(value)
         return value
         

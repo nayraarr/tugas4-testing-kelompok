@@ -108,7 +108,16 @@
         <td style="font-family:monospace;font-size:.82rem;color:#e8c97a;">{{ t.rekening_asal.nomor_rekening }}</td>
         <td style="font-family:monospace;font-size:.82rem;color:#a8c8f0;">{{ t.rekening_tujuan.nomor_rekening }}</td>
         <td style="font-weight:600;">Rp {{ t.nominal|floatformat:"0g" }}</td>
-        <td><span class="badge-status badge-{{ t.status }}">{{ t.get_status_display }}</span></td>
+        <td>
+        <span class="badge-status 
+          {% if t.status == 'approved' %}badge-approved
+          {% elif t.status == 'rejected' %}badge-rejected
+          {% elif t.status == 'pending' %}badge-pending
+          {% else %}badge-unknown
+          {% endif %}">
+          {{ t.get_status_display }}
+        </span>
+      </td>
         <td style="color:#8b95a8;font-size:.82rem;">{{ t.diproses_oleh.get_full_name|default:"—" }}</td>
       </tr>
       {% empty %}
