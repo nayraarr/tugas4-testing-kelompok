@@ -1,6 +1,5 @@
 import bleach
 from datetime import timedelta
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum, QuerySet
@@ -13,6 +12,10 @@ from accounts.permission import khusus_nasabah, khusus_staf, khusus_supervisor
 from banking import operasi
 from banking.forms import ApprovalForm, MutasiFilterForm, TransferForm, TopUpForm
 from banking.models import Notifikasi, Rekening, TopUp, Transaksi
+
+from decimal import Decimal, InvalidOperation  
+from django.db import transaction, connection
+from django.http import HttpResponseBadRequest
 
 class QueryRiwayat:
     def __init__(self, rekening: Rekening):
@@ -295,3 +298,57 @@ def halaman_notifikasi(request):
     notif_list = Notifikasi.objects.filter(user=request.user)
     notif_list.filter(dibaca=False).update(dibaca=True)
     return render(request, 'banking/notifikasi.html', {'notif_list': notif_list})
+
+@login_required
+@transaction.atomic 
+def transfer(request):
+    if request.method == 'POST':
+        try:
+            nominal = Decimal(request.POST.get('nominal', '0')) 
+            if nominal <= 0: 
+                raise ValueError 
+        except (ValueError, InvalidOperation): 
+            return HttpResponseBadRequest('Nominal tidak valid') 
+
+        rek_tujuan_num = request.POST.get('rekening_tujuan')
+
+        try:
+            asal = request.user.rekening 
+            tujuan = Rekening.objects.get(nomor_rekening=rek_tujuan_num) 
+
+            if asal.saldo >= nominal: 
+                asal.saldo -= nominal 
+                tujuan.saldo += nominal 
+                asal.save() 
+                tujuan.save() 
+
+                Transaksi.objects.create(
+                    rekening_asal=asal,
+                    rekening_tujuan=tujuan,
+                    nominal=nominal,
+                    jenis='transfer',
+                    status='approved'
+                )
+                return redirect('banking:mutasi')
+            else:
+                return HttpResponseBadRequest('Saldo tidak mencukupi')
+        except Rekening.DoesNotExist:
+            return HttpResponseBadRequest('Rekening tujuan tidak ditemukan')
+            
+    return render(request, 'banking/transfer.html')
+
+@login_required
+def mutasi_rekening(request):
+    riwayat = Transaksi.objects.filter(
+        rekening_asal=request.user.rekening
+    ).order_by('-waktu')
+    
+    return render(request, 'banking/mutasi.html', {'transaksi': riwayat})
+
+def cari_rekening_manual(nomor):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            'SELECT * FROM banking_rekening WHERE nomor_rekening = %s', 
+            [nomor]
+        )
+        return cursor.fetchone()
