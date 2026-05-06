@@ -507,7 +507,8 @@ def halaman_kelola_rekening(request):
 | 403 Forbidden (CSRF attack) | ![alt text](image-15.png) |
 | Password hash di admin | ![alt text](screenshots/image2.png) |
 | Error validasi XSS input | ![alt text](image-16.png) |
-| Error validasi SQL injection | ![alt text](image-17.png) |
+| Error validasi SQL injection pada Transfer | ![alt text](image-17.png) |
+| Error validasi SQL injection pada Login | ![alt text](image-32.png) |
 
 
 ---
