@@ -147,7 +147,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-AXES_FAILURE_LIMIT = 5
+AXES_FAILURE_LIMIT = 6
 AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_TEMPLATE = 'accounts/lockout.html'
 
