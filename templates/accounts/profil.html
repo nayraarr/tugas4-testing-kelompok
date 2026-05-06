@@ -46,7 +46,13 @@
           {{ user.get_full_name|default:user.username }}
         </h6>
         <p style="color:#8b95a8;font-size:.8rem;margin-bottom:.75rem;">@{{ user.username }}</p>
-        <span class="role-tag role-{{ user.role }}">{{ user.get_role_display }}</span>
+        <span class="role-tag 
+        {% if user.role == 'nasabah' %}role-nasabah
+        {% elif user.role == 'teller' %}role-teller
+        {% elif user.role == 'supervisor' %}role-supervisor
+        {% else %}role-unknown{% endif %}">
+          {{ user.get_role_display }}
+        </span>
       </div>
     </div>
 

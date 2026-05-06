@@ -68,7 +68,15 @@
         </td>
         <td>{{ u.get_full_name|default:"—" }}</td>
         <td style="color:#8b95a8;font-size:.82rem;">{{ u.email|default:"—" }}</td>
-        <td><span class="role-tag role-{{ u.role }}">{{ u.get_role_display }}</span></td>
+        <td>
+          <span class="role-tag 
+          {% if u.role == 'nasabah' %}role-nasabah
+          {% elif u.role == 'teller' %}role-teller
+          {% elif u.role == 'supervisor' %}role-supervisor
+          {% else %}role-unknown{% endif %}">
+            {{ u.get_role_display }}
+          </span>
+        </td>
         <td>
           {% if u.is_active %}
           <span class="badge-status badge-aktif">Aktif</span>

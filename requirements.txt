@@ -18,6 +18,9 @@ Django>=4.2,<5.0
 # Security & sanitization
 bleach>=6.0
 
+# Security - CORS protection
+django-cors-headers>=4.0
+
 # Security - brute force protection
 django-axes>=6.0
 

@@ -132,7 +132,14 @@
         <td class="fw-semibold">Rp {{ t.nominal|floatformat:"0g" }}</td>
         <td style="color:#8b95a8;font-size:.82rem;">{{ t.keterangan|default:"—" }}</td>
         <td>
-          <span class="badge-status badge-{{ t.status }}">{{ t.get_status_display }}</span>
+          <span class="badge-status 
+            {% if t.status == 'approved' %}badge-approved
+            {% elif t.status == 'rejected' %}badge-rejected
+            {% elif t.status == 'pending' %}badge-pending
+            {% else %}badge-unknown
+            {% endif %}">
+            {{ t.get_status_display }}
+          </span>
         </td>
         <td style="color:#8b95a8;font-size:.82rem;">{{ t.waktu|date:"d M Y H:i" }}</td>
       </tr>
