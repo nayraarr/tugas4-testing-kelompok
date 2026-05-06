@@ -485,19 +485,30 @@ def halaman_kelola_rekening(request):
 
 | Halaman | Screenshot |
 |---------|-----------|
-| Dashboard Nasabah | *(screenshot)* |
-| Halaman Transfer | *(screenshot)* |
-| Mutasi Rekening | *(screenshot)* |
-| Dashboard Teller (Antrian) | *(screenshot)* |
+| Dashboard Nasabah | ![alt text](image-3.png) |
+| Halaman Transfer |![alt text](image-4.png) |
+| Halaman Top Up Saldo | ![alt text](image-5.png) |
+| Mutasi Rekening | ![alt text](image-6.png) |
+| Dashboard Teller | ![alt text](image-7.png) |
+| Antrian Top Up (Teller) | ![alt text](image-8.png) |
+| Antrian Transfer (Teller) | ![alt text](image-9.png) |
+| Antrian Top Up (Supervisor) | ![alt text](image-10.png) |
+| Antrian Transfer (Supervisor) | ![alt text](image-11.png) |
+| Manajemen Laporan | ![alt text](image-12.png) |
+| Manajemen Kelola Rekening | ![alt text](image-13.png) |
+| Manajemen Kelola User |![alt text](image-14.png)  |
+
 
 ### Fitur Keamanan
 
 | Fitur | Screenshot |
 |-------|-----------|
-| Halaman Lockout (django-axes) | *(screenshot)* |
-| 403 Forbidden (CSRF attack) | *(screenshot)* |
-| Password hash di admin | *(screenshot)* |
-| Error validasi XSS input | *(screenshot)* |
+| Halaman Lockout (django-axes) | ![alt text](screenshots/image.png) |
+| 403 Forbidden (CSRF attack) | ![alt text](image-15.png) |
+| Password hash di admin | ![alt text](screenshots/image2.png) |
+| Error validasi XSS input | ![alt text](image-16.png) |
+| Error validasi SQL injection | ![alt text](image-17.png) |
+
 
 ---
 
