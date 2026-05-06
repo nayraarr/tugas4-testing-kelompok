@@ -523,11 +523,10 @@ def halaman_kelola_rekening(request):
 | TC-BA-03 | Session Token Invalidation setelah Logout | Server merespons dengan redirect ke halaman login (HTTP 302) atau HTTP 401; TIDAK ada akses ke halaman terproteksi | Browser redirect ke halaman login, tidak bisa kembali ke dashboard dengan session lama | PASS | ![TC-BA-03](screenshots/image3.png) |
 | TC-BA-04 | Akses Halaman Terproteksi Tanpa Login | Redirect ke halaman login; TIDAK ada konten halaman yang terproteksi yang ditampilkan |  Aplikasi melakukan redirect ke `/accounts/login/` dan menampilkan halaman login | PASS | ![TC-BA-03](screenshots/image4.png) |
 | TC-BA-05 | Informasi Error yang Tidak Informatif | Kedua skenario menampilkan pesan yang SAMA — tidak membedakan "username tidak ditemukan" vs "password salah" |  Kedua skenario menampilkan pesan `"Username atau password yang Anda masukkan salah."` | PASS | ![TC-BA-05](screenshots/image5.png)|
-| TC-06 | View Page Source form transfer | `csrfmiddlewaretoken` ada di HTML | *(isi)* | PASS/FAIL |
-| TC-07 | CSRF attack dari file HTML eksternal | 403 Forbidden | *(isi)* | PASS/FAIL |
-| TC-08 | Input `' OR '1'='1` di field username | Pesan error login | *(isi)* | PASS/FAIL |
-| TC-09 | Input `1; DROP TABLE banking_rekening;--` di keterangan | Error validasi | *(isi)* | PASS/FAIL |
-| TC-10 | Nasabah akses `/laporan/` (supervisor only) | 403 Forbidden | *(isi)* | PASS/FAIL |.
+| TC-CSRF-01 | Memastikan setiap form POST memiliki CSRF token | Setiap form POST memiliki hidden input dengan CSRF token, misal: <input type="hidden" name="csrfmiddlewaretoken" value="..."> | Dipastikan semua form post punya hidden input dengan CSRF token (screenshot hanya perwakilan saja) | ![alt text](image-18.png) ![alt text](image-19.png)| PASS |
+| TC-CSRF-02 | Mengirim POST request dengan CSRF token yang salah/palsu | Server merespons HTTP 403 Forbidden dan operasi TIDAK dieksekusi | Benar terjadi 403 Forbidden dan operasi tidak dieksekusi | ![alt text](image-20.png) | PASS|
+| TC-CSRF-03 | Simulasi serangan CSRF dari halaman eksternal menggunakan HTML form sederhana | User yang sudah login dan membuka file HTML tersebut serta submit form akan ditolak oleh server requestnya dengan HTTP 403 |  Benar, server menolak request dengan HTTP 403 ketika user membuka link html tersebut krn tidak ada csrf token valid | ![alt text](image-21.png) | PASS |
+
 
 ---
 
