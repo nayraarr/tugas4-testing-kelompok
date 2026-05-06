@@ -91,62 +91,193 @@ python manage.py runserver
 
 **Kode Vulnerable:**
 ```python
-# Tidak ada validasi, input langsung disimpan ke DB
-keterangan = request.POST.get('keterangan')
-Transaksi.objects.create(..., keterangan=keterangan)
+# banking/views.py — VULNERABLE
+# Input langsung diambil dari POST tanpa validasi apapun
+def transfer_view(request):
+    if request.method == 'POST':
+        keterangan = request.POST.get('keterangan')
+        # <script>alert('XSS')</script> tersimpan langsung ke DB
+        Transaksi.objects.create(
+            ...
+            keterangan=keterangan,
+        )
+<!-- Template — VULNERABLE -->
+<!-- Jika |safe dipakai, script dieksekusi di browser -->
+<td>{{ transaksi.keterangan|safe }}</td>
 ```
 
 **Kode Secure:**
 ```python
-import bleach
-from banking.validators import validate_safe_input
+# banking/validators.py 
+import re
+from django.core.exceptions import ValidationError
+# membuat fungsi validate safe input
+def validate_safe_input(value):
+    karakter_berbahaya = r'[<>&"\';(){}\|]'
+    if re.search(karakter_berbahaya, value):
+        raise ValidationError('Input mengandung karakter yang tidak diizinkan.')
 
-# Sanitasi dengan bleach sebelum disimpan
+# banking/forms.py — SECURE
+# Validator dipasang langsung di field form
+class TransferForm(forms.Form):
+    keterangan = forms.CharField(
+        validators=[validate_safe_input],  # ← tolak karakter berbahaya
+        ...
+    )
+
+class ApprovalForm(forms.Form):
+    catatan = forms.CharField(
+        validators=[validate_safe_input],  # ← tolak karakter berbahaya
+        ...
+    )
+
+# accounts/forms.py 
+class RegisterNasabahForm(forms.ModelForm):
+    def clean_first_name(self):
+        value = self.cleaned_data.get('first_name', '')
+        validate_safe_input(value)  # ← validasi nama depan
+        return value
+
+    def clean_last_name(self):
+        value = self.cleaned_data.get('last_name', '')
+        validate_safe_input(value)  # ← validasi nama belakang
+        return value
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(
+        validators=[validate_safe_input],  # ← tolak SQL/XSS di username
+        ...
+    )
+
+# banking/views.py 
+import bleach
+
+# Di halaman_transfer
 keterangan = bleach.clean(
     form.cleaned_data.get('keterangan', ''),
-    tags=[], strip=True
+    tags=[], strip=True  # ← strip semua HTML tag
 )
 Transaksi.objects.create(..., keterangan=keterangan)
+
+# Di _jalankan_verifikasi (proses topup & transfer)
+catatan = bleach.clean(
+    form.cleaned_data.get('catatan', ''),
+    tags=[], strip=True  # ← strip semua HTML tag
+)
+
+<!-- Template — SECURE -->
+<!-- Django auto-escape aktif, tidak ada |safe -->
+<td>{{ transaksi.keterangan }}</td>
 ```
 
 **Teknik Mitigasi:**
-- `banking/validators.py` — fungsi `validate_safe_input()` menolak karakter `< > & " ' ; ( ) { } |`
-- `bleach.clean()` di view untuk sanitasi HTML yang lolos validasi form
-- Auto-escape Django Template Engine aktif — tidak ada `|safe` di template
+- `banking/validators.py` — fungsi `validate_safe_input()` menolak karakter `< > & " ' ; ( ) { } |` menggunakan regex blocklist sebelum data diproses lebih lanjut. Validator ini dipasang di semua field teks bebas — keterangan (TransferForm), catatan (ApprovalForm), username (LoginForm), serta first_name, last_name, alamat (RegisterNasabahForm & EditProfilForm). 
+
+- Sanitasi Output `bleach.clean()`  field keterangan di halaman_transfer dan field catatan di _jalankan_verifikasi tetap dilewatkan bleach.clean(tags=[], strip=True) sebelum disimpan ke database. Bleach akan men-strip semua HTML tag yang tersisa ini sebagai lapisan kedua jika ada celah yang lolos dari validator
+
+- Auto-escape Template Engine
+Django Template Engine secara default meng-escape semua variabel {{ variabel }} — karakter < > & " ' dikonversi ke HTML entity sehingga tidak bisa dieksekusi browser. Seluruh template diverifikasi tidak ada |safe yang menonaktifkan escape ini, sehingga data yang ditampilkan ke user selalu aman meskipun tersimpan di database.
 
 ---
 
 ### 3.2 Broken Authentication Mitigation
 
-**Vulnerability yang Dimitigasi:** CWE-287 (Improper Authentication), CWE-307 (Brute Force), CWE-522 (Insufficiently Protected Credentials), CWE-384 (Session Fixation)
+**Vulnerability yang Dimitigasi:** CWE-256 ( Plaintext storage), CWE-916 (Password hash kuat), CWE-307 (Rate limiting), CWE-613 (Session expiration), CWE-306 (Least privilege), CWE-204 (Generic error message)
 
-**Penjelasan:** Autentikasi yang lemah memungkinkan penyerang menebak password (brute force), mencuri session, atau mengakses fitur yang bukan haknya.
+**Penjelasan:** Autentikasi yang lemah memungkinkan penyerang menebak password (brute force), mencuri/menyalahgunakan session, mengakses endpoint tanpa login, atau melakukan enumerasi akun melalui pesan error yang berbeda.
 
 **Kode Vulnerable:**
 ```python
-# Password plaintext, tidak ada rate limit
-def login(request):
-    user = User.objects.get(username=request.POST['username'])
-    if user.password == request.POST['password']:   # plaintext!
-        request.session['user_id'] = user.id
+# password plaintext, tidak ada rate limiting,
+# pesan error membocorkan informasi
+def login_view(request):
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    try:
+        user = User.objects.get(username=username)
+        if user.password == password:  # ← plaintext compare!
+            request.session['user_id'] = user.id
+    except User.DoesNotExist:
+        return "Username tidak ditemukan"  # ← bocorkan info username!
+    # tidak ada rate limiting, brute force bebas
+
+# semua endpoint bisa diakses semua role
+def halaman_laporan(request):
+    return render(request, 'banking/laporan.html')  # ← tidak ada cek role
 ```
 
 **Kode Secure:**
 ```python
-from django.contrib.auth import authenticate, login
+# accounts/forms.py — Pesan error ambigu mencegah enumerasi akun (CWE-204)
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(
+        validators=[validate_safe_input],
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
+    )
+    error_messages = {
+        'invalid_login': 'Username atau password yang Anda masukkan salah.',
+        'inactive': 'Akun ini tidak aktif.',
+    }
 
-def login_view(request):
-    form = LoginForm(request, data=request.POST)
-    if form.is_valid():
-        user = form.get_user()   # django-axes catat gagal login otomatis
-        login(request, user)     # password PBKDF2, session aman
+# accounts/views.py — @never_cache + @csrf_protect, session dibuat ulang saat login
+@csrf_protect
+@never_cache
+def halaman_login(request):
+    if request.user.is_authenticated:
+        return redirect('accounts:dashboard')
+    form = LoginForm(request, data=request.POST or None)
+    if request.method == 'POST' and _proses_login(request, form):
+        return redirect('accounts:dashboard')
+    return render(request, 'accounts/login.html', {'form': form})
+
+# accounts/views.py — Proteksi endpoint dengan @login_required + @khusus_supervisor
+@login_required
+@khusus_supervisor
+def halaman_kelola_pengguna(request):
+    ...
+
+# accounts/views.py — Dashboard dispatch berdasarkan role (least privilege)
+_PETA_RENDERER = {
+    'nasabah':    _render_dasbor_nasabah,
+    'teller':     _render_dasbor_teller,
+    'supervisor': _render_dasbor_supervisor,
+}
+
+@never_cache
+@login_required
+def halaman_beranda(request):
+    peran = request.user.role
+    renderer = _PETA_RENDERER.get(peran)
+    if renderer is None:
+        return redirect('accounts:login')
+    return renderer(request)
+
+# settings.py — Konfigurasi session dan django-axes
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 1800                  # 30 menit
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+AXES_FAILURE_LIMIT = 6                     # lockout setelah 5 gagal (ke-6 trigger)
+AXES_COOLOFF_TIME = 1                      # cooloff 1 jam
+AXES_LOCKOUT_TEMPLATE = 'accounts/lockout.html'
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 ```
 
 **Teknik Mitigasi:**
-- Password hashing PBKDF2 via `AbstractUser` — tidak pernah simpan plaintext
-- `SESSION_COOKIE_HTTPONLY=True`, `SESSION_COOKIE_AGE=1800`, `SESSION_EXPIRE_AT_BROWSER_CLOSE=True`
-- `django-axes`: lockout setelah 5x gagal login, cooloff 1 jam
-- Decorator `@nasabah_only`, `@teller_only`, `@supervisor_only` — least privilege enforcement
+- Password Hashing (PBKDF2) -> Password di-hash menggunakan PBKDF2 via set_password() dari Django AbstractUser. Password tidak pernah disimpan plaintext di database maupun di kode, terbukti dari audit seluruh codebase tidak ada assignment 
+user.password = plaintext.
+
+- Rate Limiting (django-axes) -> AxesStandaloneBackend mencatat setiap percobaan login gagal. Akun dikunci setelah 6x gagal login dengan cooloff 1 jam — mencegah brute force attack. Halaman lockout ditampilkan via AXES_LOCKOUT_TEMPLATE.
+
+- Session Management -> SESSION_COOKIE_HTTPONLY=True mencegah JavaScript mengakses session cookie. SESSION_COOKIE_AGE=1800 membatasi session 30 menit. SESSION_EXPIRE_AT_BROWSER_CLOSE=True menghapus session saat browser ditutup. logout() Django menghapus session di sisi server secara penuh, token lama tidak bisa digunakan kembali.
+
+- Least Privilege per Role -> accounts/permission.py mengimplementasikan sistem dekorator berbasis role, khusus_nasabah, khusus_teller, khusus_supervisor, khusus_staf. Setiap endpoint diproteksi dekorator yang sesuai, role yang tidak berhak otomatis di-redirect ke dashboard dengan pesan error.
+
+- Generic Error Message -> LoginForm.error_messages dikonfigurasi dengan pesan generik "Username atau password yang Anda masukkan salah", tidak membocorkan apakah username atau password yang salah, sehingga attacker tidak bisa menebak keberadaan akun.
 
 ---
 
@@ -163,6 +294,22 @@ def login_view(request):
   <input name="nominal" type="number">
   <button>Transfer</button>
 </form>
+
+# settings.py — middleware tidak aktif
+# CsrfViewMiddleware tidak ada, semua POST request diproses tanpa verifikasi
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    # CsrfViewMiddleware tidak ada — semua POST request diproses tanpa verifikasi
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+]
+
+# views.py — tidak ada verifikasi CSRF
+def transfer_view(request):
+    if request.method == 'POST':
+        # langsung proses tanpa cek token
+        keterangan = request.POST.get('keterangan')
+        Transaksi.objects.create(...)
 ```
 
 **Kode Secure:**
@@ -173,42 +320,160 @@ def login_view(request):
   <input name="nominal" type="number">
   <button>Transfer</button>
 </form>
+
+# config/settings.py — CsrfViewMiddleware aktif
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',     # ← CORS protection
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware', # ← verifikasi token semua POST
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+]
+
+# CORS dikonfigurasi eksplisit
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
+
+# banking/views.py — @csrf_protect sebagai double protection
+from django.views.decorators.csrf import csrf_protect
+
+@login_required
+@csrf_protect        # ← verifikasi ulang di level view
+@khusus_nasabah
+def halaman_transfer(request):
+    if request.method == 'POST' and form.is_valid():
+        ...
+
+# accounts/views.py
+@csrf_protect
+def halaman_login(request):
+    ...
 ```
 
 **Teknik Mitigasi:**
-- `CsrfViewMiddleware` aktif di `MIDDLEWARE` — tidak dihapus atau di-disable
-- `{% csrf_token %}` di semua 11 form POST (login, register, transfer, topup, proses, toggle, dll.)
-- `@csrf_protect` sebagai double protection di `transfer_view`, `topup_view`, `proses_topup_view`, `proses_transfer_view`
-- Tidak ada `@csrf_exempt` di seluruh codebase
+- CsrfViewMiddleware di config/settings.py memverifikasi setiap request POST secara otomatis. Token yang tidak ada atau tidak cocok menyebabkan HTTP 403 Forbidden sebelum request sampai ke view manapun.
+- `{% csrf_token %}` di semua 12 form POST (login, register, transfer, topup, proses, toggle, topup dll.)
+- `@csrf_protect` sebagai double protection dipasang di 5 view banking/views.py dan 7 view accounts/views.py — memastikan verifikasi tetap berjalan meskipun middleware dinonaktifkan.
+- CORS eksplisit (django-cors-headers) -> CORS_ALLOWED_ORIGINS dikonfigurasi hanya mengizinkan origin terdaftar. CORS_ALLOW_ALL_ORIGINS = False memastikan cross-origin request dari domain tidak terdaftar ditolak.
 
 ---
 
 ### 3.4 SQL Injection Prevention
 
-**Vulnerability yang Dimitigasi:** CWE-89 (SQL Injection), CWE-20 (Improper Input Validation), CWE-285 (Improper Authorization)
+**Vulnerability yang Dimitigasi:** CWE-89 (SQL Injection)
 
 **Penjelasan:** Menggabungkan input pengguna langsung ke string SQL memungkinkan penyerang memanipulasi query untuk membaca, mengubah, atau menghapus data.
 
 **Kode Vulnerable:**
 ```python
+# VULNERABLE — string concatenation langsung ke SQL
 def cari_rekening(nomor):
     query = f"SELECT * FROM banking_rekening WHERE nomor_rekening = '{nomor}'"
     cursor.execute(query)
-    # Payload: ' OR '1'='1 → ambil semua rekening!
+    # Payload: ' OR '1'='1 → ambil semua rekening
+
+def login_view(request):
+    username = request.POST.get('username')
+    query = f"SELECT * FROM auth_user WHERE username = '{username}'"
+    cursor.execute(query)
+    # Payload: ' OR '1'='1' → bypass login
+
+def cari_transaksi(keyword):
+    query = "SELECT * FROM banking_transaksi WHERE keterangan = '" + keyword + "'"
+    cursor.execute(query)
+    # Payload: ' UNION SELECT username, password, null FROM auth_user --
+    # → ekstrak data sensitif dari tabel lain
 ```
 
 **Kode Secure:**
 ```python
-def cari_rekening(nomor):
-    # Django ORM — query otomatis terparameterisasi
-    return Rekening.objects.get(nomor_rekening=nomor, aktif=True)
+# banking/views.py seluruh query pakai Django ORM
+from django.db.models import Q
+
+# Filter transaksi, ORM otomatis parameterized query
+class QueryRiwayat:
+    def __init__(self, rekening):
+        self._qs = Transaksi.objects.filter(
+            Q(rekening_asal=rekening) | Q(rekening_tujuan=rekening)
+        )
+
+    def filter_rentang(self, periode):
+        if periode and periode != 'all':
+            batas = timezone.now() - timedelta(days=int(periode))
+            self._qs = self._qs.filter(waktu__gte=batas)  # ← parameterized
+        return self
+
+    def filter_jenis(self, jenis):
+        if jenis:
+            self._qs = self._qs.filter(jenis=jenis)  # ← parameterized
+        return self
+
+# banking/operasi.py — SECURE — transaction.atomic + select_for_update
+from django.db import transaction
+
+@transaction.atomic
+def jalankan_transfer(transaksi, petugas, disetujui, catatan=''):
+    # select_for_update() — lock row, cegah race condition
+    transaksi = Transaksi.objects.select_for_update().get(pk=transaksi.pk)
+    asal      = Rekening.objects.select_for_update().get(pk=transaksi.rekening_asal.pk)
+    tujuan    = Rekening.objects.select_for_update().get(pk=transaksi.rekening_tujuan.pk)
+    ...
+
+@transaction.atomic
+def jalankan_topup(topup, petugas, disetujui, catatan=''):
+    topup    = TopUp.objects.select_for_update().get(pk=topup.pk)
+    rekening = Rekening.objects.select_for_update().get(pk=topup.rekening.pk)
+    ...
+
+# banking/forms.py — SECURE — validasi format sebelum query
+class TransferForm(forms.Form):
+    rekening_tujuan = forms.CharField(
+        validators=[validate_no_rekening],  # ← hanya 10 digit angka
+    )
+    nominal = forms.DecimalField(
+        validators=[validate_nominal],      # ← hanya angka positif
+    )
+
+# banking/validators.py
+def validate_no_rekening(value):
+    if not value.isdigit():
+        raise ValidationError('Nomor rekening hanya boleh berisi angka.')
+    if len(value) != 10:
+        raise ValidationError('Nomor rekening harus tepat 10 digit.')
+
+# banking/views.py — SECURE — authorization check per user
+@login_required
+@khusus_nasabah
+def halaman_mutasi(request):
+    # Nasabah hanya bisa lihat rekening milik sendiri
+    rekening = Rekening.objects.get(pemilik=request.user)  # ← filter by user
+    ...
+
+@login_required
+@khusus_supervisor
+def halaman_kelola_rekening(request):
+    q = request.GET.get('q', '')
+    qs = Rekening.objects.select_related('pemilik').all()
+    if q:
+        # Pencarian pakai ORM Q() — bukan string concatenation
+        qs = qs.filter(
+            Q(nomor_rekening__icontains=q)
+            | Q(pemilik__first_name__icontains=q)
+            | Q(pemilik__last_name__icontains=q)
+            | Q(pemilik__username__icontains=q)
+        )
 ```
 
 **Teknik Mitigasi:**
-- Seluruh query menggunakan Django ORM — tidak ada `cursor.execute()` dengan string concatenation
-- `@transaction.atomic` di `services.py` — transfer tidak setengah jalan jika terjadi error
-- Setiap view hanya akses data milik `request.user` sendiri (authorization check)
-- Hasil audit: `grep -rn "cursor.execute" .` → **0 hasil** di codebase
+- Parameterized Query -> Seluruh operasi database menggunakan Django ORM — tidak ada satu pun cursor.execute() dengan string concatenation di codebase. Django ORM secara otomatis menghasilkan parameterized query yang memisahkan kode SQL dari data, sehingga input user tidak pernah bisa diinterpretasikan sebagai perintah SQL. 
+- Fungsi jalankan_transfer() dan jalankan_topup() dibungkus @transaction.atomic dengan select_for_update(), memastikan operasi debit-kredit berjalan atomik dan tidak terjadi race condition jika ada request bersamaan.
+- validate_no_rekening() memastikan nomor rekening hanya boleh 10 digit angka sebelum digunakan sebagai parameter query. validate_nominal() memastikan nominal hanya angka positif. Payload seperti 1234567890' OR '1'='1' ditolak di level form sebelum menyentuh database.
+- Setiap view hanya mengakses data milik request.user sendiri, nasabah tidak bisa mengakses rekening orang lain karena query selalu difilter pemilik=request.user. Endpoint pencarian di halaman_kelola_rekening menggunakan Q() ORM , bukan string concatenation.
+- Aplikasi menggunakan SQLite sebagai database development. Pada SQLite tidak terdapat sistem user/role database seperti PostgreSQL, namun prinsip least privilege diterapkan di level aplikasi melalui decorator @khusus_nasabah, @khusus_teller, @khusus_supervisor
 
 ---
 
@@ -220,19 +485,30 @@ def cari_rekening(nomor):
 
 | Halaman | Screenshot |
 |---------|-----------|
-| Dashboard Nasabah | *(screenshot)* |
-| Halaman Transfer | *(screenshot)* |
-| Mutasi Rekening | *(screenshot)* |
-| Dashboard Teller (Antrian) | *(screenshot)* |
+| Dashboard Nasabah | ![alt text](image-3.png) |
+| Halaman Transfer |![alt text](image-4.png) |
+| Halaman Top Up Saldo | ![alt text](image-5.png) |
+| Mutasi Rekening | ![alt text](image-6.png) |
+| Dashboard Teller | ![alt text](image-7.png) |
+| Antrian Top Up (Teller) | ![alt text](image-8.png) |
+| Antrian Transfer (Teller) | ![alt text](image-9.png) |
+| Antrian Top Up (Supervisor) | ![alt text](image-10.png) |
+| Antrian Transfer (Supervisor) | ![alt text](image-11.png) |
+| Manajemen Laporan | ![alt text](image-12.png) |
+| Manajemen Kelola Rekening | ![alt text](image-13.png) |
+| Manajemen Kelola User |![alt text](image-14.png)  |
+
 
 ### Fitur Keamanan
 
 | Fitur | Screenshot |
 |-------|-----------|
-| Halaman Lockout (django-axes) | *(screenshot)* |
-| 403 Forbidden (CSRF attack) | *(screenshot)* |
-| Password hash di admin | *(screenshot)* |
-| Error validasi XSS input | *(screenshot)* |
+| Halaman Lockout (django-axes) | ![alt text](screenshots/image.png) |
+| 403 Forbidden (CSRF attack) | ![alt text](image-15.png) |
+| Password hash di admin | ![alt text](screenshots/image2.png) |
+| Error validasi XSS input | ![alt text](image-16.png) |
+| Error validasi SQL injection | ![alt text](image-17.png) |
+
 
 ---
 
@@ -242,9 +518,11 @@ def cari_rekening(nomor):
 |-----|----------|----------|--------|--------| ---------- |
 | TC-01 | Input `<script>alert('XSS')</script>` di field keterangan transfer | Error validasi, tidak tersimpan | *(isi)* | PASS/FAIL |
 | TC-02 | Input `<b>bold</b>` di field nama | Tampil sebagai teks biasa | *(isi)* | PASS/FAIL |
-| TC-03 | Login salah 5x berturut-turut | Halaman lockout muncul | Halaman lockout muncul dengan pesan "Akun Sementara Terkunci, coba lagi dalam 1 jam" | PASS | ![alt text](screenshots/image.png) |
-| TC-04 | Cek kolom password di Django Admin | Hash `pbkdf2_sha256$...` | Kolom password menampilkan pbkdf2_sha256$600000$<salt>$<hash>, bukan plaintext | PASS | ![alt text](screenshots/image2.png) |
-| TC-05 | Logout → tekan Back browser | Redirect ke login | Browser redirect ke halaman login, tidak bisa kembali ke dashboard | PASS | ![alt text](screenshots/image3.png) | 
+| TC-BA-01 | Password Hashing Verification | Kolom password menampilkan hash `pbkdf2_sha256$...` — bukan plaintext | Kolom password menampilkan `pbkdf2_sha256$600000$<salt>$<hash>`, bukan plaintext | PASS | ![TC-BA-01](screenshots/image2.png) |
+| TC-BA-02 | Brute Force / Rate Limiting | Sistem menampilkan pesan "Akun dikunci sementara" / rate limit aktif; login tidak dapat dilanjutkan | Halaman lockout muncul dengan pesan "Akun Sementara Terkunci, coba lagi dalam 1 jam" | PASS | ![TC-BA-02](screenshots/image.png) |
+| TC-BA-03 | Session Token Invalidation setelah Logout | Server merespons dengan redirect ke halaman login (HTTP 302) atau HTTP 401; TIDAK ada akses ke halaman terproteksi | Browser redirect ke halaman login, tidak bisa kembali ke dashboard dengan session lama | PASS | ![TC-BA-03](screenshots/image3.png) |
+| TC-BA-04 | Akses Halaman Terproteksi Tanpa Login | Redirect ke halaman login; TIDAK ada konten halaman yang terproteksi yang ditampilkan |  Aplikasi melakukan redirect ke `/accounts/login/` dan menampilkan halaman login | PASS | ![TC-BA-03](screenshots/image4.png) |
+| TC-BA-05 | Informasi Error yang Tidak Informatif | Kedua skenario menampilkan pesan yang SAMA — tidak membedakan "username tidak ditemukan" vs "password salah" |  Kedua skenario menampilkan pesan `"Username atau password yang Anda masukkan salah."` | PASS | ![TC-BA-05](screenshots/image5.png)|
 | TC-06 | View Page Source form transfer | `csrfmiddlewaretoken` ada di HTML | *(isi)* | PASS/FAIL |
 | TC-07 | CSRF attack dari file HTML eksternal | 403 Forbidden | *(isi)* | PASS/FAIL |
 | TC-08 | Input `' OR '1'='1` di field username | Pesan error login | *(isi)* | PASS/FAIL |

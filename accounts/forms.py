@@ -64,6 +64,10 @@ class LoginForm(AuthenticationForm):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
     )
+    error_messages = {
+        'invalid_login': 'Username atau password yang Anda masukkan salah.',
+        'inactive': 'Akun ini tidak aktif.',
+    }
 
 class TambahUserForm(forms.ModelForm):
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
