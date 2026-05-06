@@ -526,7 +526,8 @@ def halaman_kelola_rekening(request):
 | TC-CSRF-01 | Memastikan setiap form POST memiliki CSRF token | Setiap form POST memiliki hidden input dengan CSRF token, misal: <input type="hidden" name="csrfmiddlewaretoken" value="..."> | Dipastikan semua form post punya hidden input dengan CSRF token (screenshot hanya perwakilan saja) | ![alt text](image-18.png) ![alt text](image-19.png)| PASS |
 | TC-CSRF-02 | Mengirim POST request dengan CSRF token yang salah/palsu | Server merespons HTTP 403 Forbidden dan operasi TIDAK dieksekusi | Benar terjadi 403 Forbidden dan operasi tidak dieksekusi | ![alt text](image-20.png) | PASS|
 | TC-CSRF-03 | Simulasi serangan CSRF dari halaman eksternal menggunakan HTML form sederhana | User yang sudah login dan membuka file HTML tersebut serta submit form akan ditolak oleh server requestnya dengan HTTP 403 |  Benar, server menolak request dengan HTTP 403 ketika user membuka link html tersebut krn tidak ada csrf token valid | ![alt text](image-21.png) | PASS |
-
+| TC-CI-04c | Injeksi pada field kolom keterangan/berita transfer |  User menginput <script>alert('transfer intercepted')</script> pada keterangan transfer dan dianggap sebagai teks biasa | Terbukti bahwa keterangan tersebut dianggap sebagai text biasa | ![alt text](image-22.png)  ![alt text](image-23.png) ![alt text](image-24.png)| PASS |
+| TC-CSRF-04c | Menguji endpoint POST /transfer/ apakah memindahkan saldo secara otomatis atau tidak ketika user dalam kondisi login membuka link html berbahaya  | Server harus menolak degan 403 response dan saldo tidak berpindah | Benar, bahwa saldo user tidak berpindah dan server menolak dengan 403 response  | ![alt text](image-25.png)  ![alt text](image-26.png) (terdapat demo di video presentasi) | PASS |
 
 ---
 
