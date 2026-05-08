@@ -542,10 +542,10 @@ def halaman_kelola_rekening(request):
 
 🎬 **Link Video:** [ristek.link/TK3-PKPassword123](https://ristek.link/TK3-PKPassword123)
 
-**Durasi:** 10–15 menit
+**Durasi:** 15 menit
 
 **Isi Video:**
-1. Demo aplikasi secara fungsional (maks. 2 menit) — login sebagai nasabah, transfer, mutasi, logout
+1. Demo aplikasi secara fungsional
 2. Demonstrasi test case TC-01 s/d TC-10 beserta hasilnya
 3. Penjelasan teknik mitigasi masing-masing komponen dan alasan pemilihan pendekatan tersebut
 
