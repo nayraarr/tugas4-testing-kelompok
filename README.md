@@ -540,7 +540,7 @@ def halaman_kelola_rekening(request):
 
 ## 6. Video Demo
 
-🎬 **Link Video:** [YouTube](<ristek.link/TK3-PKPassword123>)
+🎬 **Link Video:** [ristek.link/TK3-PKPassword123](https://ristek.link/TK3-PKPassword123)
 
 **Durasi:** 10–15 menit
 
