@@ -482,8 +482,6 @@ def halaman_kelola_rekening(request):
 
 ## 4. Screenshot Aplikasi
 
-> Ganti jd screenshot dari aplikasi.
-
 ### Antarmuka Utama
 
 | Halaman | Screenshot |
@@ -520,8 +518,10 @@ def halaman_kelola_rekening(request):
 
 | TC# | Skenario | Expected | Actual | Status | Screenshot |
 |-----|----------|----------|--------|--------| ---------- |
-| TC-01 | Input `<script>alert('XSS')</script>` di field keterangan transfer | Error validasi, tidak tersimpan | *(isi)* | PASS/FAIL |
-| TC-02 | Input `<b>bold</b>` di field nama | Tampil sebagai teks biasa | *(isi)* | PASS/FAIL |
+| TC-SQLi 01 | Input `' OR '1'='1'` di field username | Error validasi, tidak dapat login | Form menolak input username tersebut dan menampilkan pesan 'username mengandung karakter yang tidak diperbolehkan' | PASS | ![TC-SQLi-01](image-30.png) |
+| TC-SQLi 02 | Input `' UNION SELECT username, password, null FROM users --` di field search bar | *(isi)* | *(isi)* | PASS/FAIL |
+| TC-SQLi 03 | Verifikasi kode menggunakan parameterized query / ORM | menerapkan verifikasi menggunakan parameteriized query/ORM, tidak dengan string concatenation | pada function mutasi_rekening menggunakan Djago ORM untuk tahap verifikasi | PASS | ![TC-SQLi-01](image-33.png) |
+| TC-SQLi 04 | Input `1234567890' OR '1'='1' --` di field rekening tujuan | Error validasi, tidak dapat menlanjutkan proses transfer | Form menolak input nomor rekening tersebut dan menampilkan pesan 'nomor rekekingnya boleh berupa angka' | PASS | ![TC-SQLi-01](image-17.png) |
 | TC-CI-01 | Input `<script>alert('XSS')</script>` di field keterangan transfer | Script tidak dieksekusi, form menampilkan pesan error validasi "Input mengandung karakter yang tidak diizinkan" | Form menolak input dengan pesan validasi, tidak ada alert box yang muncul, data tidak tersimpan ke database | PASS | ![TC-CI-01](image-27.png) |
 | TC-CI-02 | Input `<h1>Hacked</h1><img src=x onerror=alert(1)>` di field keterangan transfer | Tag HTML tidak dirender, form menampilkan pesan error validasi | Form menolak input dengan pesan validasi "Input mengandung karakter yang tidak diizinkan", tag HTML tidak dieksekusi | PASS | ![TC-CI-02](image-28.png) |
 | TC-CI-03 | Input `{{7*7}}` di field keterangan transfer | Input ditampilkan sebagai teks literal `{{7*7}}`, tidak dievaluasi menjadi `49` | Form menerima input, keterangan ditampilkan sebagai teks literal `{{7*7}}` di riwayat transaksi, bukan `49` | PASS | ![TC-CI-03](image-29.png) |
