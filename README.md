@@ -541,6 +541,7 @@ def halaman_kelola_rekening(request):
 ## 6. Video Demo
 
 🎬 **Link Video:** [ristek.link/TK3-PKPassword123](https://ristek.link/TK3-PKPassword123)
+📋 **Link Video Test Case Lengkap:** [ristek.link/TesCaseTK3-PKPassword123](https://ristek.link/TesCaseTK3-PKPassword123)
 
 **Durasi:** 15 menit
 
