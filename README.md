@@ -47,23 +47,23 @@ Aplikasi Mobile Banking berbasis web yang memungkinkan nasabah melakukan transak
 ```bash
 # 1. Clone repo
 git clone <URL_GITLAB_KELOMPOK>
-cd mobilebanking
+cd pkpl26_35_pkpassword123
 
 # 2. Buat virtual environment
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+venv\Scripts\activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
 
 # 4. Buat file .env di root project (sama dengan manage.py)
-echo "SECRET_KEY=ganti-dengan-secret-key-acak-anda" > .env
+echo SECRET_KEY=sercret-key-saya > .env
 
 # 5. Migrasi database
 python manage.py migrate
 
 # 6. Isi data dummy (user + rekening awal)
-python manage.py shell < seed_data.py
+python manage.py shell -c "exec(open('seed_data.py').read())"
 
 # 7. Jalankan server
 python manage.py runserver
@@ -527,17 +527,17 @@ def halaman_kelola_rekening(request):
 | TC-BA-03 | Session Token Invalidation setelah Logout | Server merespons dengan redirect ke halaman login (HTTP 302) atau HTTP 401; TIDAK ada akses ke halaman terproteksi | Browser redirect ke halaman login, tidak bisa kembali ke dashboard dengan session lama | PASS | ![TC-BA-03](screenshots/image3.png) |
 | TC-BA-04 | Akses Halaman Terproteksi Tanpa Login | Redirect ke halaman login; TIDAK ada konten halaman yang terproteksi yang ditampilkan |  Aplikasi melakukan redirect ke `/accounts/login/` dan menampilkan halaman login | PASS | ![TC-BA-03](screenshots/image4.png) |
 | TC-BA-05 | Informasi Error yang Tidak Informatif | Kedua skenario menampilkan pesan yang SAMA — tidak membedakan "username tidak ditemukan" vs "password salah" |  Kedua skenario menampilkan pesan `"Username atau password yang Anda masukkan salah."` | PASS | ![TC-BA-05](screenshots/image5.png)|
-| TC-CSRF-01 | Memastikan setiap form POST memiliki CSRF token | Setiap form POST memiliki hidden input dengan CSRF token, misal: <input type="hidden" name="csrfmiddlewaretoken" value="..."> | Dipastikan semua form post punya hidden input dengan CSRF token (screenshot hanya perwakilan saja) | ![alt text](image-18.png) ![alt text](image-19.png)| PASS |
-| TC-CSRF-02 | Mengirim POST request dengan CSRF token yang salah/palsu | Server merespons HTTP 403 Forbidden dan operasi TIDAK dieksekusi | Benar terjadi 403 Forbidden dan operasi tidak dieksekusi | ![alt text](image-20.png) | PASS|
-| TC-CSRF-03 | Simulasi serangan CSRF dari halaman eksternal menggunakan HTML form sederhana | User yang sudah login dan membuka file HTML tersebut serta submit form akan ditolak oleh server requestnya dengan HTTP 403 |  Benar, server menolak request dengan HTTP 403 ketika user membuka link html tersebut krn tidak ada csrf token valid | ![alt text](image-21.png) | PASS |
-| TC-CI-04c | Injeksi pada field kolom keterangan/berita transfer |  User menginput <script>alert('transfer intercepted')</script> pada keterangan transfer dan dianggap sebagai teks biasa | Terbukti bahwa keterangan tersebut dianggap sebagai text biasa | ![alt text](image-22.png)  ![alt text](image-23.png) ![alt text](image-24.png)| PASS |
-| TC-CSRF-04c | Menguji endpoint POST /transfer/ apakah memindahkan saldo secara otomatis atau tidak ketika user dalam kondisi login membuka link html berbahaya  | Server harus menolak degan 403 response dan saldo tidak berpindah | Benar, bahwa saldo user tidak berpindah dan server menolak dengan 403 response  | ![alt text](image-25.png)  ![alt text](image-26.png) (terdapat demo di video presentasi) | PASS |
+| TC-CSRF-01 | Memastikan setiap form POST memiliki CSRF token | Setiap form POST memiliki hidden input dengan CSRF token, misal: <input type="hidden" name="csrfmiddlewaretoken" value="..."> | Dipastikan semua form post punya hidden input dengan CSRF token (screenshot hanya perwakilan saja) | PASS | ![alt text](image-18.png) ![alt text](image-19.png) |
+| TC-CSRF-02 | Mengirim POST request dengan CSRF token yang salah/palsu | Server merespons HTTP 403 Forbidden dan operasi TIDAK dieksekusi | Benar terjadi 403 Forbidden dan operasi tidak dieksekusi | PASS | ![alt text](image-20.png) |
+| TC-CSRF-03 | Simulasi serangan CSRF dari halaman eksternal menggunakan HTML form sederhana | User yang sudah login dan membuka file HTML tersebut serta submit form akan ditolak oleh server requestnya dengan HTTP 403 |  Benar, server menolak request dengan HTTP 403 ketika user membuka link html tersebut krn tidak ada csrf token valid | PASS | ![alt text](image-21.png) |
+| TC-CI-04c | Injeksi pada field kolom keterangan/berita transfer |  User menginput <script>alert('transfer intercepted')</script> pada keterangan transfer dan dianggap sebagai teks biasa | Terbukti bahwa keterangan tersebut dianggap sebagai text biasa | PASS | ![alt text](image-22.png)  ![alt text](image-23.png) ![alt text](image-24.png) |
+| TC-CSRF-04c | Menguji endpoint POST /transfer/ apakah memindahkan saldo secara otomatis atau tidak ketika user dalam kondisi login membuka link html berbahaya  | Server harus menolak degan 403 response dan saldo tidak berpindah | Benar, bahwa saldo user tidak berpindah dan server menolak dengan 403 response  | PASS | ![alt text](image-25.png)  ![alt text](image-26.png) (terdapat demo di video presentasi) |
 
 ---
 
 ## 6. Video Demo
 
-🎬 **Link Video:** [YouTube](<URL_VIDEO>)
+🎬 **Link Video:** [YouTube](<ristek.link/TK3-PKPassword123>)
 
 **Durasi:** 10–15 menit
 
