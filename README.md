@@ -74,10 +74,13 @@ python manage.py runserver
 
 | Username | Password | Role |
 |----------|----------|------|
-| supervisor1 | password123 | Supervisor |
+| supervisor1 | password123 | Supervisor Bank |
 | teller1 | password123 | Teller |
-| nasabah1 | password123 | Nasabah (Rp 5.000.000) |
-| nasabah2 | password123 | Nasabah (Rp 12.500.000) |
+| teller2 | password123 | Teller |
+| nasabah1 | password123 | Nasabah (Dewi Lestari) |
+| nasabah2 | password123 | Nasabah (Rizky Pratama) |
+| nasabah3 | password123 | Nasabah (Maya Wulandari) |
+| nasabah4 | password123 | Nasabah (Fajar Hidayat) |
 
 ---
 
