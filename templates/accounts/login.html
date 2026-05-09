@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Masuk — BigBank{% endblock %}
+{% block auth_content %}
+<div class="min-vh-100 d-flex" style="background: #0a0f1e;">
+
+  <!-- Left panel — decorative -->
+  <div class="d-none d-lg-flex flex-column justify-content-between p-5" style="width:45%; background: linear-gradient(160deg, #111827 0%, #0d1626 100%); border-right: 1px solid rgba(201,168,76,.08); position: relative; overflow: hidden;">
+    <!-- background decorative circles -->
+    <div style="position:absolute; top:-80px; right:-80px; width:320px; height:320px; border-radius:50%; border: 1px solid rgba(201,168,76,.08);"></div>
+    <div style="position:absolute; top:40px; right:40px; width:200px; height:200px; border-radius:50%; border: 1px solid rgba(201,168,76,.06);"></div>
+    <div style="position:absolute; bottom:-60px; left:-60px; width:240px; height:240px; border-radius:50%; border: 1px solid rgba(201,168,76,.06);"></div>
+
+    <!-- Brand -->
+    <div style="position:relative; z-index:1;">
+      <div style="display:flex; align-items:center; gap:.65rem; margin-bottom: 3rem;">
+        <div style="width:40px;height:40px;background:linear-gradient(135deg,#c9a84c,#e8c97a);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#0a0f1e;">
+          <i class="bi bi-bank"></i>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:#eef1f6;">BigBank</span>
+      </div>
+
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;color:#eef1f6;line-height:1.2;margin-bottom:1rem;">
+        Perbankan<br>
+        <span style="color:#c9a84c;">Digital</span> yang<br>
+        Terpercaya.
+      </h2>
+      <p style="color:#8b95a8;font-size:.9rem;max-width:300px;line-height:1.7;">
+        Kelola keuangan dengan aman dan mudah. Transfer, top-up, dan pantau saldo kapan saja.
+      </p>
+    </div>
+
+    <!-- Feature list -->
+    <div style="position:relative;z-index:1;">
+      {% for item in "x,x,x"|make_list %}{% endfor %}
+      <div style="display:flex;flex-direction:column;gap:.75rem;">
+        <div style="display:flex;align-items:center;gap:.75rem;color:#8b95a8;font-size:.82rem;">
+          <div style="width:28px;height:28px;border-radius:7px;background:rgba(61,186,126,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-shield-check" style="color:#3dba7e;font-size:.85rem;"></i>
+          </div>
+          Transfer aman dengan verifikasi berlapis
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;color:#8b95a8;font-size:.82rem;">
+          <div style="width:28px;height:28px;border-radius:7px;background:rgba(201,168,76,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-clock-history" style="color:#c9a84c;font-size:.85rem;"></i>
+          </div>
+          Riwayat transaksi lengkap dan real-time
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;color:#8b95a8;font-size:.82rem;">
+          <div style="width:28px;height:28px;border-radius:7px;background:rgba(82,130,224,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-bell" style="color:#5282e0;font-size:.85rem;"></i>
+          </div>
+          Notifikasi setiap aktivitas akun Anda
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — login form -->
+  <div class="flex-grow-1 d-flex align-items-center justify-content-center p-4">
+    <div style="width:100%;max-width:380px;">
+
+      <div class="mb-4">
+        <h3 style="font-family:'Syne',sans-serif;font-weight:800;color:#eef1f6;margin-bottom:.4rem;">Selamat Datang</h3>
+        <p style="color:#8b95a8;font-size:.875rem;">Masuk ke akun BigBank Anda</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <div style="position:relative;">
+            <i class="bi bi-person" style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:#8b95a8;"></i>
+            {{ form.username }}
+          </div>
+          {% if form.username.errors %}<div style="color:#e05252;font-size:.78rem;margin-top:.3rem;">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">Password</label>
+          <div style="position:relative;">
+            <i class="bi bi-lock" style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:#8b95a8;"></i>
+            {{ form.password }}
+          </div>
+          {% if form.password.errors %}<div style="color:#e05252;font-size:.78rem;margin-top:.3rem;">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+        <div style="background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.2);border-radius:9px;padding:.7rem 1rem;margin-bottom:1rem;color:#e05252;font-size:.82rem;display:flex;align-items:center;gap:.5rem;">
+          <i class="bi bi-exclamation-circle-fill"></i> {{ form.non_field_errors.0 }}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-gold w-100 py-2" style="font-size:.9rem;letter-spacing:.02em;">
+          Masuk <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      </form>
+
+      <div style="border-top:1px solid rgba(255,255,255,.08);margin:1.5rem 0;"></div>
+
+      <p style="text-align:center;color:#8b95a8;font-size:.82rem;">
+        Belum punya akun?
+        <a href="{% url 'accounts:register' %}" style="color:#c9a84c;font-weight:600;text-decoration:none;">Daftar sekarang</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* override input padding for icon */
+  #id_username, #id_password { padding-left: 2.4rem !important; }
+</style>
+{% endblock %}

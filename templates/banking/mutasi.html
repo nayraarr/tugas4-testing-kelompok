@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Mutasi Rekening — BigBank{% endblock %}
+{% block page_title %}Mutasi Rekening{% endblock %}
+{% block content %}
+
+<!-- Stat Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card stat-gold">
+      <div class="stat-icon"><i class="bi bi-credit-card-2-front-fill"></i></div>
+      <div class="stat-label">No. Rekening</div>
+      <div class="stat-value" style="font-size:1.1rem;letter-spacing:.06em;">{{ rekening.nomor_rekening }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card stat-green">
+      <div class="stat-icon"><i class="bi bi-arrow-down-circle-fill"></i></div>
+      <div class="stat-label">Total Masuk</div>
+      <div class="stat-value" style="font-size:1.3rem;">Rp {{ total_masuk|floatformat:"0g" }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card stat-red">
+      <div class="stat-icon"><i class="bi bi-arrow-up-circle-fill"></i></div>
+      <div class="stat-label">Total Keluar</div>
+      <div class="stat-value" style="font-size:1.3rem;">Rp {{ total_keluar|floatformat:"0g" }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Table Card -->
+<div class="card">
+  <!-- Filter -->
+  <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Periode</label>
+        {{ filter_form.periode }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Jenis</label>
+        {{ filter_form.jenis }}
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-silver w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+      </div>
+    </form>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Jenis</th>
+          <th>Dari / Ke</th>
+          <th>Keterangan</th>
+          <th style="text-align:right;">Nominal</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in transaksi %}
+      <tr>
+        <td style="color:#8b95a8;font-size:.82rem;white-space:nowrap;">{{ t.waktu|date:"d M Y H:i" }}</td>
+        <td>
+          {% if t.jenis == 'transfer' %}
+            {% if t.rekening_tujuan == rekening %}
+              <span class="amount-in" style="font-size:.82rem;"><i class="bi bi-arrow-down-circle me-1"></i>Masuk</span>
+            {% else %}
+              <span class="amount-out" style="font-size:.82rem;"><i class="bi bi-arrow-up-circle me-1"></i>Keluar</span>
+            {% endif %}
+          {% else %}
+            <span style="color:#5282e0;font-size:.82rem;font-weight:600;"><i class="bi bi-plus-circle me-1"></i>Top-up</span>
+          {% endif %}
+        </td>
+        <td style="font-size:.82rem;color:#8b95a8;font-family:monospace;">
+          {% if t.jenis == 'transfer' %}
+            {% if t.rekening_tujuan == rekening %}
+              Dari {{ t.rekening_asal.nomor_rekening }}
+            {% else %}
+              Ke {{ t.rekening_tujuan.nomor_rekening }}
+            {% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ t.keterangan|default:"—"|truncatechars:30 }}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          {% if t.rekening_tujuan == rekening %}
+            <span class="amount-in">+ Rp {{ t.nominal|floatformat:"0g" }}</span>
+          {% else %}
+            <span class="amount-out">− Rp {{ t.nominal|floatformat:"0g" }}</span>
+          {% endif %}
+        </td>
+        <td><span class="badge-status {% if t.status == 'approved' %}badge-approved{% elif t.status == 'rejected' %}badge-rejected{% elif t.status == 'pending' %}badge-pending{% else %}badge-unknown{% endif %}">{{ t.get_status_display }}</span></td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:3.5rem;color:#8b95a8;">
+          <i class="bi bi-journal-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
+          Tidak ada transaksi pada periode ini
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

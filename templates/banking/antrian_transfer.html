@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Antrian Transfer — BigBank{% endblock %}
+{% block page_title %}Antrian Transfer{% endblock %}
+{% block content %}
+
+<!-- Info Role -->
+<div style="margin-bottom:1.25rem;">
+  {% if user.is_teller %}
+  <div style="background:rgba(160,82,224,.07);border:1px solid rgba(160,82,224,.18);border-radius:10px;padding:.7rem 1rem;display:flex;align-items:center;gap:.65rem;font-size:.82rem;color:#d4a8f0;">
+    <i class="bi bi-person-badge-fill"></i>
+    Mode Teller — hanya menampilkan transfer <strong style="color:#eef1f6;">&lt; Rp 10.000.000</strong>
+  </div>
+  {% endif %}
+  {% if user.is_supervisor %}
+  <div style="background:rgba(232,154,60,.07);border:1px solid rgba(232,154,60,.18);border-radius:10px;padding:.7rem 1rem;display:flex;align-items:center;gap:.65rem;font-size:.82rem;color:#f0c87a;">
+    <i class="bi bi-shield-fill-check"></i>
+    Mode Supervisor — menampilkan <strong style="color:#eef1f6;">semua transfer</strong> termasuk nominal besar
+  </div>
+  {% endif %}
+</div>
+
+<!-- Menunggu Persetujuan -->
+<div class="card mb-4">
+  <div class="card-header" style="justify-content:space-between;">
+    <span><i class="bi bi-send-fill" style="color:#e89a3c;"></i> Menunggu Persetujuan</span>
+    {% if pending %}
+    <span style="background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);color:#e05252;font-size:.7rem;font-weight:700;padding:.25em .8em;border-radius:20px;">
+      {{ pending|length }} antrian
+    </span>
+    {% else %}
+    <span style="background:rgba(61,186,126,.12);border:1px solid rgba(61,186,126,.25);color:#3dba7e;font-size:.7rem;font-weight:700;padding:.25em .8em;border-radius:20px;">
+      Kosong
+    </span>
+    {% endif %}
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Nasabah</th>
+          <th>Dari Rek.</th>
+          <th>Ke Rek.</th>
+          <th>Nominal</th>
+          <th>Keterangan</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in pending %}
+      <tr {% if t.butuh_supervisor %}style="background:rgba(232,154,60,.04);"{% endif %}>
+        <td style="color:#8b95a8;font-size:.82rem;white-space:nowrap;">{{ t.waktu|date:"d M H:i" }}</td>
+        <td style="font-weight:600;font-size:.875rem;">{{ t.rekening_asal.pemilik.get_full_name }}</td>
+        <td style="font-family:monospace;font-size:.82rem;color:#e8c97a;">{{ t.rekening_asal.nomor_rekening }}</td>
+        <td style="font-family:monospace;font-size:.82rem;color:#a8c8f0;">{{ t.rekening_tujuan.nomor_rekening }}</td>
+        <td>
+          <div style="font-weight:700;{% if t.butuh_supervisor %}color:#e89a3c;{% else %}color:#eef1f6;{% endif %}">
+            Rp {{ t.nominal|floatformat:"0g" }}
+          </div>
+          {% if t.butuh_supervisor %}
+          <span style="background:rgba(232,154,60,.12);border:1px solid rgba(232,154,60,.25);color:#e89a3c;font-size:.65rem;font-weight:700;padding:.15em .5em;border-radius:20px;">
+            Supervisor
+          </span>
+          {% endif %}
+        </td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ t.keterangan|default:"—"|truncatechars:20 }}</td>
+        <td>
+          <a href="{% url 'banking:proses_transfer' t.pk %}" class="btn btn-gold btn-sm py-1 px-3" style="font-size:.78rem;">
+            <i class="bi bi-play-fill me-1"></i>Proses
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" style="text-align:center;padding:2.5rem;color:#8b95a8;">
+          <i class="bi bi-send" style="font-size:2rem;display:block;margin-bottom:.6rem;opacity:.4;"></i>
+          Tidak ada antrian transfer
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Sudah Diproses -->
+<div class="card">
+  <div class="card-header">
+    <i class="bi bi-check2-all" style="color:#3dba7e;"></i> Sudah Diproses
+    <span style="color:#8b95a8;font-size:.75rem;font-weight:400;margin-left:.4rem;">(20 terakhir)</span>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Dari</th>
+          <th>Ke</th>
+          <th>Nominal</th>
+          <th>Status</th>
+          <th>Diproses</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in selesai %}
+      <tr>
+        <td style="color:#8b95a8;font-size:.82rem;white-space:nowrap;">{{ t.waktu|date:"d M H:i" }}</td>
+        <td style="font-family:monospace;font-size:.82rem;color:#e8c97a;">{{ t.rekening_asal.nomor_rekening }}</td>
+        <td style="font-family:monospace;font-size:.82rem;color:#a8c8f0;">{{ t.rekening_tujuan.nomor_rekening }}</td>
+        <td style="font-weight:600;">Rp {{ t.nominal|floatformat:"0g" }}</td>
+        <td>
+        <span class="badge-status 
+          {% if t.status == 'approved' %}badge-approved
+          {% elif t.status == 'rejected' %}badge-rejected
+          {% elif t.status == 'pending' %}badge-pending
+          {% else %}badge-unknown
+          {% endif %}">
+          {{ t.get_status_display }}
+        </span>
+      </td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ t.diproses_oleh.get_full_name|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center;padding:2rem;color:#8b95a8;">Belum ada.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Riwayat Top-up — BigBank{% endblock %}
+{% block page_title %}Riwayat Top-up{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="card-header" style="justify-content:space-between;">
+    <span>
+      <i class="bi bi-receipt" style="color:#c9a84c;"></i>
+      Riwayat Top-up —
+      <span style="font-family:monospace;color:#e8c97a;">{{ rekening.nomor_rekening }}</span>
+    </span>
+    <a href="{% url 'banking:topup' %}" class="btn btn-gold btn-sm py-1 px-3">
+      <i class="bi bi-plus-lg me-1"></i> Top-up Baru
+    </a>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Nominal</th>
+          <th>Metode</th>
+          <th>Status</th>
+          <th>Diproses Oleh</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for t in topup_list %}
+      <tr>
+        <td style="color:#8b95a8;font-size:.82rem;white-space:nowrap;">{{ t.waktu_request|date:"d M Y H:i" }}</td>
+        <td style="font-weight:600;">Rp {{ t.nominal|floatformat:"0g" }}</td>
+        <td style="color:#8b95a8;font-size:.85rem;">{{ t.get_metode_display }}</td>
+        <td>
+          <span class="badge-status 
+            {% if t.status == 'approved' %}badge-approved
+            {% elif t.status == 'rejected' %}badge-rejected
+            {% elif t.status == 'pending' %}badge-pending
+            {% else %}badge-unknown
+            {% endif %}">
+            {{ t.get_status_display }}
+          </span>
+        </td>
+        <td style="color:#8b95a8;font-size:.82rem;">{{ t.diproses_oleh.get_full_name|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" style="text-align:center;padding:3.5rem;color:#8b95a8;">
+          <i class="bi bi-inbox" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
+          Belum ada riwayat top-up
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
