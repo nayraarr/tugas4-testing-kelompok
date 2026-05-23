@@ -160,6 +160,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://bigbank.up.railway.app"
 ]
 
-
+CSRF_TRUSTED_ORIGINS = [
+    'https://bigbank.up.railway.app',
+]
 CSRF_COOKIE_HTTPONLY = False  
 CSRF_COOKIE_SECURE = False
