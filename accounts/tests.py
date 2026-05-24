@@ -275,8 +275,3 @@ class CSRFTogglePenggunaTest(TestCase):
         self.client_csrf.post(self.url)
         self.nasabah_target.refresh_from_db()
         self.assertEqual(self.nasabah_target.is_active, status_awal)
-
-
-
-
-
