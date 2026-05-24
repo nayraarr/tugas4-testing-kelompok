@@ -252,10 +252,10 @@ Mengumpulkan informasi tentang target aplikasi sebelum melakukan serangan.
 | Secret Key | Tidak Terekspos |
 
 > Screenshot (di settings.py): 
-![alt text](screenshots\recon\image.png)
-![alt text](screenshots\recon\image-1.png)
-![alt text](screenshots\recon\image-2.png)
-![alt text](screenshots\recon\image-3.png)
+![alt text](screenshots/recon/image.png)
+![alt text](screenshots/recon/image-1.png)
+![alt text](screenshots/recon/image-2.png)
+![alt text](screenshots/recon/image-3.png)
 
 ##### 2.1.2 Analisis HTTP Headers
 
@@ -270,7 +270,7 @@ Mengumpulkan informasi tentang target aplikasi sebelum melakukan serangan.
 | Set-Cookie | csrftoken=3q4xxy5OaxrOZV0dJMLf9m7Yj8PGnayo; expires=Sun, 23 May 2027 06:38:49 GMT; Max-Age=31449600; Path=/; SameSite=Lax | Tidak ada flag Secure dan HttpOnly |
 
 > Screenshot: 
-![alt text](screenshots\recon\image-4.png)
+![alt text](screenshots/recon/image-4.png)
 
 ##### 2.1.3 Analisis Domain
 
@@ -298,10 +298,10 @@ host bigbank.up.railway.app
 | DNS Server | 10.255.255.254 |
 
 **Screenshot:**
-![alt text](screenshots\recon\image-5.png)
+![alt text](screenshots/recon/image-5.png)
 
 **WHOIS (via whois.com):**
-![alt text](screenshots\recon\image-6.png)
+![alt text](screenshots/recon/image-6.png)
 
 ##### 2.1.4 Google Dorking
 
@@ -317,10 +317,10 @@ Hasil yang muncul merupakan repository pihak lain yang tidak berkaitan.
 **Status:** Aman, tidak ada credential/env file yang terekspos secara publik.
 
 **Screenshot pencarian:**
-![alt text](screenshots\recon\image-7.png)
-![alt text](screenshots\recon\image-8.png)
-![alt text](screenshots\recon\image-9.png)
-![alt text](screenshots\recon\image-10.png)
+![alt text](screenshots/recon/image-7.png)
+![alt text](screenshots/recon/image-8.png)
+![alt text](screenshots/recon/image-9.png)
+![alt text](screenshots/recon/image-10.png)
 
 
 ---
@@ -437,9 +437,9 @@ PORT      STATE SERVICE    VERSION
 **Catatan:** Port 21 (FTP), 22 (SSH), 554 (RTSP), 1723 (PPTP) adalah milik infrastruktur Railway, bukan aplikasi BigBank. Port 8000 (Django dev server) dalam kondisi filtered dan tidak terekspos ke publik.
 
 > Screenshot:
-![alt text](screenshots\recon\image-11.png)
-![alt text](screenshots\recon\image-12.png)
-![alt text](screenshots\recon\image-13.png)
+![alt text](screenshots/recon/image-11.png)
+![alt text](screenshots/recon/image-12.png)
+![alt text](screenshots/recon/image-13.png)
 
 ---
 
@@ -469,8 +469,8 @@ PORT      STATE SERVICE    VERSION
 | 15 | https://bigbank.up.railway.app/accounts/logout/ | POST | Spider |
 
 > Screenshot Hasil Automated Scan ZAP:
-![alt text](screenshots\recon\image-14.png)
-![alt text](screenshots\recon\image-15.png)
+![alt text](screenshots/recon/image-14.png)
+![alt text](screenshots/recon/image-15.png)
 
 ---
 
@@ -550,9 +550,9 @@ Mendeteksi kerentanan secara otomatis dan manual.
 | 10 | User Controllable HTML Element Attribute (Potential XSS) | Informational | Low | https://bigbank.up.railway.app/accounts/login/ | password |
 
 > Screenshot (Tab Alerts ZAP): 
-![alt text](screenshots\scanning\image-16.png)
+![alt text](screenshots/scanning/image-16.png)
 > Screenshot (Detail salah satu alert):
-![alt text](screenshots\scanning\image-17.png)
+![alt text](screenshots/scanning/image-17.png)
 
 ---
 
@@ -592,7 +592,7 @@ admin'--
 Catatan: Semua payload dimasukkan di field username. Field password diisi dengan nilai dummy (`test`) agar form dapat di-submit.
 
 > Screenshot: 
-![alt text](screenshots\scanning\image-26.png)
+![alt text](screenshots/scanning/image-26.png)
 (sisanya sama seperti ini)
 
 **Hasil sqlmap:**
@@ -704,7 +704,7 @@ it is recommended to perform only basic UNION tests if there is not at least one
 ```
 
 > Screenshot:
-![alt text](screenshots\scanning\image-18.png)
+![alt text](screenshots/scanning/image-18.png)
 
 ---
 
@@ -735,13 +735,13 @@ javascript:alert('XSS')
 | 7 | /banking/transfer/ | keterangan | `javascript:alert('XSS')` | "Input mengandung karakter yang tidak diizinkan." — form tidak disubmit | Input diblokir client-side | Protected |
 
 > Screenshot: 
-![alt text](screenshots\scanning\image-19.png)
-![alt text](screenshots\scanning\image-20.png)
-![alt text](screenshots\scanning\image-21.png)
-![alt text](screenshots\scanning\image-22.png)
-![alt text](screenshots\scanning\image-23.png)
-![alt text](screenshots\scanning\image-24.png)
-![alt text](screenshots\scanning\image-25.png)
+![alt text](screenshots/scanning/image-19.png)
+![alt text](screenshots/scanning/image-20.png)
+![alt text](screenshots/scanning/image-21.png)
+![alt text](screenshots/scanning/image-22.png)
+![alt text](screenshots/scanning/image-23.png)
+![alt text](screenshots/scanning/image-24.png)
+![alt text](screenshots/scanning/image-25.png)
 
 ---
 
@@ -760,12 +760,12 @@ javascript:alert('XSS')
 | 5 | Privilege escalation | Direct URL | User nasabah (Dewi Lestari) mencoba akses `/banking/antrian-transfer/` (halaman teller) → di-redirect ke dashboard dengan pesan "Anda tidak memiliki akses ke halaman ini." (HTTP 302) | Protected |
 
 > Screenshot:
-![alt text](screenshots\scanning\image-27.png)
-![alt text](screenshots\scanning\image-28.png)
-![alt text](screenshots\scanning\image-30.png)
-![alt text](screenshots\scanning\image-29.png)
-![alt text](screenshots\scanning\image-32.png)
-![alt text](screenshots\scanning\image-31.png)
+![alt text](screenshots/scanning/image-27.png)
+![alt text](screenshots/scanning/image-28.png)
+![alt text](screenshots/scanning/image-30.png)
+![alt text](screenshots/scanning/image-29.png)
+![alt text](screenshots/scanning/image-32.png)
+![alt text](screenshots/scanning/image-31.png)
 
 ---
 
@@ -781,8 +781,8 @@ javascript:alert('XSS')
 | 2 | /accounts/login/ | POST | Ada — `<input type="hidden" name="csrfmiddlewaretoken" value="wEtYbL9fAb0cRvP8dBJSkkLRTClghYKVG3vEYvLD7YJ7F0dSc8KFMLmwUKrAHWsu">` | CSRF token wajib ada di setiap request POST, request tanpa token ditolak server | Protected |
 
 > Screenshot:
-![alt text](screenshots\scanning\image-33.png)
-![alt text](screenshots\scanning\image-34.png)
+![alt text](screenshots/scanning/image-33.png)
+![alt text](screenshots/scanning/image-34.png)
 
 ---
 
@@ -929,8 +929,8 @@ Jika CSRF tidak diproteksi, penyerang dapat memaksa nasabah yang sedang login un
 **Status:** Protected
 
 > Screenshot:
-![alt text](screenshots\exploitation\image-33.png)
-![alt text](screenshots\exploitation\image-34.png)
+![alt text](screenshots/exploitation/image-33.png)
+![alt text](screenshots/exploitation/image-34.png)
 
 ---
 
@@ -973,12 +973,12 @@ Jika salah satu mekanisme di atas gagal, penyerang dapat mengakses data nasabah 
 **Status:** Protected
 
 > Screenshot:
-![alt text](screenshots\exploitation\image-27.png)
-![alt text](screenshots\exploitation\image-28.png)
-![alt text](screenshots\exploitation\image-29.png)
-![alt text](screenshots\exploitation\image-30.png)
-![alt text](screenshots\exploitation\image-31.png)
-![alt text](screenshots\exploitation\image-32.png)
+![alt text](screenshots/exploitation/image-27.png)
+![alt text](screenshots/exploitation/image-28.png)
+![alt text](screenshots/exploitation/image-29.png)
+![alt text](screenshots/exploitation/image-30.png)
+![alt text](screenshots/exploitation/image-31.png)
+![alt text](screenshots/exploitation/image-32.png)
 
 ---
 
