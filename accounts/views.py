@@ -92,7 +92,7 @@ def _proses_registrasi(request, form) -> bool:
         return False
     pengguna = form.save()
     buat_rekening_baru(pengguna)
-    login(request, pengguna)
+    login(request, pengguna, backend='django.contrib.auth.backends.ModelBackend')
     messages.success(request, 'Registrasi berhasil! Rekening Anda telah dibuat.')
     return True
 
