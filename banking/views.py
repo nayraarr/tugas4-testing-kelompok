@@ -339,10 +339,7 @@ def transfer(request):
 
 @login_required
 def mutasi_rekening(request):
-    riwayat = Transaksi.objects.filter(
-        rekening_asal=request.user.rekening
-    ).order_by('-waktu')
-    
+    riwayat = Transaksi.objects.filter(rekening_asal=request.user.rekening).order_by('-waktu')
     return render(request, 'banking/mutasi.html', {'transaksi': riwayat})
 
 def cari_rekening_manual(nomor):
