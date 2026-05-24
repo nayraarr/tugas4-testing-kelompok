@@ -103,3 +103,180 @@ class BrokenAuthMitigationTests(TestCase):
         
         self.assertTemplateUsed(response, 'accounts/lockout.html')
         self.assertTrue(AccessAttempt.objects.filter(username=self.username).exists())
+
+
+class CSRFLoginTest(TestCase):
+    def setUp(self):
+        self.client_csrf = Client(enforce_csrf_checks=True)
+        self.nasabah = User.objects.create_user(
+            username='budi_santoso',
+            password='Rahasia@Bank1!',
+            role='nasabah',
+        )
+        self.url = reverse('accounts:login')
+
+    def test_login_tanpa_token_csrf_ditolak(self):
+        """POST ke halaman login tanpa CSRF token harus ditolak (403)."""
+        response = self.client_csrf.post(self.url, {
+            'username': 'budi_santoso',
+            'password': 'Rahasia@Bank1!',
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_login_method_get_tidak_perlu_csrf(self):
+        """GET ke halaman login tidak memerlukan CSRF token."""
+        response = self.client_csrf.get(self.url)
+        self.assertNotEqual(response.status_code, 403)
+
+
+class CSRFRegisterTest(TestCase):
+    def setUp(self):
+        self.client_csrf = Client(enforce_csrf_checks=True)
+        self.url = reverse('accounts:register')
+
+    def test_registrasi_tanpa_token_csrf_ditolak(self):
+        """POST ke halaman registrasi tanpa CSRF token harus ditolak (403)."""
+        response = self.client_csrf.post(self.url, {
+            'username': 'siti_rahayu',
+            'password1': 'Rahasia@Bank2!',
+            'password2': 'Rahasia@Bank2!',
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_registrasi_method_get_tidak_perlu_csrf(self):
+        """GET ke halaman registrasi tidak memerlukan CSRF token."""
+        response = self.client_csrf.get(self.url)
+        self.assertNotEqual(response.status_code, 403)
+
+
+class CSRFGantiPasswordTest(TestCase):
+    def setUp(self):
+        self.client_csrf = Client(enforce_csrf_checks=True)
+        self.nasabah = User.objects.create_user(
+            username='andi_wijaya',
+            password='Rahasia@Bank3!',
+            role='nasabah',
+        )
+        self.url = reverse('accounts:ganti_password')
+
+    def test_ganti_sandi_tanpa_token_csrf_ditolak(self):
+        """POST ganti password tanpa CSRF token harus ditolak (403)."""
+        self.client_csrf.force_login(self.nasabah)
+        response = self.client_csrf.post(self.url, {
+            'old_password': 'Rahasia@Bank3!',
+            'new_password1': 'SandiKuat@Baru1!',
+            'new_password2': 'SandiKuat@Baru1!',
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_ganti_sandi_method_get_tidak_perlu_csrf(self):
+        """GET ke halaman ganti password tidak memerlukan CSRF token."""
+        self.client_csrf.force_login(self.nasabah)
+        response = self.client_csrf.get(self.url)
+        self.assertNotEqual(response.status_code, 403)
+
+
+class CSRFLogoutTest(TestCase):
+    def setUp(self):
+        self.client_csrf = Client(enforce_csrf_checks=True)
+        self.nasabah = User.objects.create_user(
+            username='dewi_kusuma',
+            password='Rahasia@Bank4!',
+            role='nasabah',
+        )
+        self.url = reverse('accounts:logout')
+
+    def test_logout_tanpa_token_csrf_ditolak(self):
+        """POST logout tanpa CSRF token harus ditolak (403)."""
+        self.client_csrf.force_login(self.nasabah)
+        response = self.client_csrf.post(self.url)
+        self.assertEqual(response.status_code, 403)
+
+
+class CSRFProfilTest(TestCase):
+    def setUp(self):
+        self.client_csrf = Client(enforce_csrf_checks=True)
+        self.nasabah = User.objects.create_user(
+            username='rini_hartono',
+            password='Rahasia@Bank5!',
+            role='nasabah',
+        )
+        self.url = reverse('accounts:profil')
+
+    def test_edit_profil_tanpa_token_csrf_ditolak(self):
+        """POST edit profil tanpa CSRF token harus ditolak (403)."""
+        self.client_csrf.force_login(self.nasabah)
+        response = self.client_csrf.post(self.url, {
+            'first_name': 'Rini',
+            'last_name': 'Hartono',
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_edit_profil_method_get_tidak_perlu_csrf(self):
+        """GET ke halaman profil tidak memerlukan CSRF token."""
+        self.client_csrf.force_login(self.nasabah)
+        response = self.client_csrf.get(self.url)
+        self.assertNotEqual(response.status_code, 403)
+
+
+class CSRFTambahPenggunaTest(TestCase):
+    def setUp(self):
+        self.client_csrf = Client(enforce_csrf_checks=True)
+        self.supervisor = User.objects.create_user(
+            username='ahmad_fauzi',
+            password='Rahasia@Bank6!',
+            role='supervisor',
+        )
+        self.url = reverse('accounts:tambah_user')
+
+    def test_tambah_pengguna_tanpa_token_csrf_ditolak(self):
+        """POST tambah user tanpa CSRF token harus ditolak (403)."""
+        self.client_csrf.force_login(self.supervisor)
+        response = self.client_csrf.post(self.url, {
+            'username': 'nasabah_baru',
+            'password1': 'Rahasia@Bank7!',
+            'password2': 'Rahasia@Bank7!',
+            'role': 'nasabah',
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_tambah_pengguna_method_get_tidak_perlu_csrf(self):
+        """GET ke halaman tambah user tidak memerlukan CSRF token."""
+        self.client_csrf.force_login(self.supervisor)
+        response = self.client_csrf.get(self.url)
+        self.assertNotEqual(response.status_code, 403)
+
+
+class CSRFTogglePenggunaTest(TestCase):
+    def setUp(self):
+        self.client_csrf = Client(enforce_csrf_checks=True)
+        self.supervisor = User.objects.create_user(
+            username='hendra_gunawan',
+            password='Rahasia@Bank8!',
+            role='supervisor',
+        )
+        self.nasabah_target = User.objects.create_user(
+            username='maya_sari',
+            password='Rahasia@Bank9!',
+            role='nasabah',
+        )
+        self.url = reverse('accounts:toggle_aktif_user', args=[self.nasabah_target.pk])
+
+    def test_toggle_pengguna_tanpa_token_csrf_ditolak(self):
+        """POST toggle user tanpa CSRF token harus ditolak (403)."""
+        self.client_csrf.force_login(self.supervisor)
+        response = self.client_csrf.post(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_status_pengguna_tidak_berubah_tanpa_csrf(self):
+        """Status aktif user tidak boleh berubah jika CSRF gagal."""
+        self.client_csrf.force_login(self.supervisor)
+        status_awal = self.nasabah_target.is_active
+        self.client_csrf.post(self.url)
+        self.nasabah_target.refresh_from_db()
+        self.assertEqual(self.nasabah_target.is_active, status_awal)
+
+
+
+
+

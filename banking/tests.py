@@ -1,5 +1,6 @@
 from django.test import TestCase, Client, RequestFactory
 from django.urls import reverse
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from banking.models import Rekening, Transaksi
 from banking.views import cari_rekening_manual, transfer, halaman_kelola_rekening, halaman_mutasi, halaman_antrian_kirim
