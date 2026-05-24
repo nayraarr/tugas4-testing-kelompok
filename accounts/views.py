@@ -118,6 +118,7 @@ def _eksekusi_toggle_user(aktor, target_id: int):
 
 
 # VIEWS FUNCTIONS
+@never_cache
 @csrf_protect
 def halaman_login(request):
     if request.user.is_authenticated:
@@ -134,6 +135,7 @@ def halaman_logout(request):
         messages.success(request, 'Anda telah berhasil logout.')
     return redirect('accounts:login')
 
+@never_cache
 @csrf_protect
 def halaman_registrasi(request):
     if request.user.is_authenticated:
@@ -164,6 +166,7 @@ def halaman_profil(request):
         return redirect('accounts:profil')
     return render(request, 'accounts/profil.html', {'form': form})
 
+@never_cache
 @login_required(login_url='/login/')
 @csrf_protect
 def halaman_ganti_sandi(request):
