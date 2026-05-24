@@ -6,6 +6,10 @@ from banking.models import Rekening, Transaksi, TopUp
 from banking.views import cari_rekening_manual, transfer, halaman_kelola_rekening, halaman_mutasi, halaman_antrian_kirim
 from banking.views import halaman_laporan, mutasi_rekening
 from decimal import Decimal
+from django.test import TestCase
+from django.core.exceptions import ValidationError
+from banking.validators import validate_safe_input
+import bleach
 from accounts.models import CustomUser
 
 User = get_user_model()
@@ -480,3 +484,144 @@ class SQLTests(TestCase):
             response.status_code, 200,
             "Param asing pada GET tidak boleh menyebabkan error 500."
         )
+
+# CODE INJECTION PREVENTION TESTS
+class ValidateSafeInputTests(TestCase):
+    """Unit test untuk fungsi validate_safe_input()"""
+
+    # --- TC-CI-01: Script Tag / XSS ---
+    def test_tolak_script_tag(self):
+        """Input <script>alert('XSS')</script> harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("<script>alert('XSS')</script>")
+
+    def test_tolak_script_tag_reflected(self):
+        """Input dengan tag <script> apapun harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("<script src='evil.js'></script>")
+
+    # --- TC-CI-02: HTML Injection ---
+    def test_tolak_html_injection_h1(self):
+        """Input <h1>Hacked</h1> harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("<h1>Hacked</h1>")
+
+    def test_tolak_html_injection_img_onerror(self):
+        """Input <img src=x onerror=alert(1)> harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("<img src=x onerror=alert(1)>")
+
+    # --- TC-CI-03: Template Injection / SSTI ---
+    def test_tolak_template_injection_kalkulasi(self):
+        """Input {{7*7}} harus ditolak karena karakter { dan }."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("{{7*7}}")
+
+    def test_tolak_template_injection_secret_key(self):
+        """Input {{config.SECRET_KEY}} harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("{{config.SECRET_KEY}}")
+
+    # --- Input valid harus lolos ---
+    def test_terima_input_normal(self):
+        """Input teks biasa harus lolos validasi."""
+        try:
+            validate_safe_input("Bayar makan siang")
+        except ValidationError:
+            self.fail("Input normal seharusnya tidak ditolak.")
+
+    def test_terima_input_angka(self):
+        """Input angka harus lolos validasi."""
+        try:
+            validate_safe_input("Transfer 500000")
+        except ValidationError:
+            self.fail("Input angka seharusnya tidak ditolak.")
+
+    # --- Karakter berbahaya lainnya ---
+    def test_tolak_karakter_ampersand(self):
+        """Input dengan & harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("test & inject")
+
+    def test_tolak_karakter_semicolon(self):
+        """Input dengan ; harus ditolak (SQL/code separator)."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("test; DROP TABLE")
+
+    def test_tolak_karakter_single_quote(self):
+        """Input dengan ' harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_safe_input("' OR '1'='1")
+
+
+class BleachSanitasiTests(TestCase):
+    """Unit test untuk sanitasi output dengan bleach.clean()"""
+
+    def test_bleach_strip_script_tag(self):
+        """bleach.clean() harus menghapus tag <script>."""
+        hasil = bleach.clean("<script>alert('XSS')</script>", tags=[], strip=True)
+        self.assertNotIn("<script>", hasil)
+        self.assertNotIn("</script>", hasil)
+
+    def test_bleach_strip_html_tag(self):
+        """bleach.clean() harus menghapus tag HTML apapun."""
+        hasil = bleach.clean("<h1>Hacked</h1>", tags=[], strip=True)
+        self.assertNotIn("<h1>", hasil)
+        self.assertEqual(hasil, "Hacked")
+
+    def test_bleach_strip_img_onerror(self):
+        """bleach.clean() harus menghapus tag img dengan onerror."""
+        hasil = bleach.clean("<img src=x onerror=alert(1)>", tags=[], strip=True)
+        self.assertNotIn("<img", hasil)
+        self.assertNotIn("onerror", hasil)
+
+    def test_bleach_teks_normal_tidak_berubah(self):
+        """bleach.clean() tidak boleh mengubah teks biasa."""
+        input_normal = "Bayar makan siang"
+        hasil = bleach.clean(input_normal, tags=[], strip=True)
+        self.assertEqual(hasil, input_normal)
+
+class CodeInjectionTransferTests(TestCase):
+    """TC-CI-04c: Injeksi pada field keterangan transfer"""
+
+    def setUp(self):
+        # Buat user nasabah
+        self.nasabah = CustomUser.objects.create_user(
+            username='testnasabah', password='password123',
+            first_name='Test', last_name='Nasabah',
+            email='test@mail.com', role='nasabah',
+        )
+        # Buat rekening asal
+        self.rekening_asal = Rekening.objects.create(
+            pemilik=self.nasabah,
+            nomor_rekening='1234567890',
+            saldo=Decimal('1000000'),
+        )
+        # Buat rekening tujuan
+        self.nasabah2 = CustomUser.objects.create_user(
+            username='testnasabah2', password='password123',
+            first_name='Test2', last_name='Nasabah2',
+            email='test2@mail.com', role='nasabah',
+        )
+        self.rekening_tujuan = Rekening.objects.create(
+            pemilik=self.nasabah2,
+            nomor_rekening='0987654321',
+            saldo=Decimal('500000'),
+        )
+
+    def test_keterangan_xss_ditolak_validator(self):
+        """TC-CI-04c: <script>alert('transfer intercepted')</script> harus ditolak validator."""
+        # Ganti self.client.login dengan force_login
+        self.client.force_login(self.nasabah)
+        
+        response = self.client.post('/banking/transfer/', {
+            'rekening_tujuan': '0987654321',
+            'nominal': '10000',
+            'keterangan': "<script>alert('transfer intercepted')</script>",
+        })
+        # Form harus ditolak, transaksi tidak terbuat
+        from banking.models import Transaksi
+        transaksi_ada = Transaksi.objects.filter(
+            rekening_asal=self.rekening_asal
+        ).exists()
+        self.assertFalse(transaksi_ada, "Transaksi tidak boleh terbuat jika keterangan mengandung XSS payload.")

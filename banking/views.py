@@ -16,6 +16,7 @@ from banking.models import Notifikasi, Rekening, TopUp, Transaksi
 from decimal import Decimal, InvalidOperation  
 from django.db import transaction, connection
 from django.http import HttpResponseBadRequest
+from django.views.decorators.cache import never_cache
 
 class QueryRiwayat:
     def __init__(self, rekening: Rekening):
@@ -147,7 +148,7 @@ def halaman_transfer(request):
 
     return render(request, 'banking/transfer.html', {'form': form, 'rekening': rekening})
 
-
+@never_cache
 @login_required
 @khusus_nasabah
 def halaman_mutasi(request):
