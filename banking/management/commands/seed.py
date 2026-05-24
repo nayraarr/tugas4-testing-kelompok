@@ -10,10 +10,16 @@ from datetime import timedelta
 class Command(BaseCommand):
     help = 'Seed data awal'
 
-    def handle(self, *args, **kwargs):
+def handle(self, *args, **kwargs):
         if CustomUser.objects.filter(username='supervisor1').exists():
             self.stdout.write('Data sudah ada, skip seed.')
             return
+        
+        TopUp.objects.all().delete()
+        Transaksi.objects.all().delete()
+        Rekening.objects.all().delete()
+        CustomUser.objects.exclude(is_superuser=True).delete()
+        self.stdout.write('Data lama dibersihkan.')
 
         CustomUser.objects.exclude(is_superuser=True).delete()
 
