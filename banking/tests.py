@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from banking.validators import validate_safe_input
 import bleach
 from accounts.models import CustomUser
+from banking.validators import validate_nominal, validate_no_rekening
 
 User = get_user_model()
 
@@ -625,3 +626,54 @@ class CodeInjectionTransferTests(TestCase):
             rekening_asal=self.rekening_asal
         ).exists()
         self.assertFalse(transaksi_ada, "Transaksi tidak boleh terbuat jika keterangan mengandung XSS payload.")
+
+class ValidateNominalTests(TestCase):
+    """Unit test untuk fungsi validate_nominal()"""
+
+    def test_tolak_nominal_nol(self):
+        """Nominal 0 harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_nominal(Decimal('0'))
+
+    def test_tolak_nominal_negatif(self):
+        """Nominal negatif harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_nominal(Decimal('-1000'))
+
+    def test_tolak_nominal_melebihi_batas(self):
+        """Nominal di atas 1 miliar harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_nominal(Decimal('1000000001'))
+
+    def test_terima_nominal_valid(self):
+        """Nominal positif normal harus lolos."""
+        try:
+            validate_nominal(Decimal('50000'))
+        except ValidationError:
+            self.fail("Nominal valid seharusnya tidak ditolak.")
+
+
+class ValidateNoRekeningTests(TestCase):
+    """Unit test untuk fungsi validate_no_rekening()"""
+
+    def test_tolak_bukan_angka(self):
+        """Nomor rekening yang mengandung huruf harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_no_rekening("123ABC7890")
+
+    def test_tolak_kurang_dari_10_digit(self):
+        """Nomor rekening kurang dari 10 digit harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_no_rekening("12345")
+
+    def test_tolak_lebih_dari_10_digit(self):
+        """Nomor rekening lebih dari 10 digit harus ditolak."""
+        with self.assertRaises(ValidationError):
+            validate_no_rekening("12345678901")
+
+    def test_terima_no_rekening_valid(self):
+        """Nomor rekening 10 digit angka harus lolos."""
+        try:
+            validate_no_rekening("1234567890")
+        except ValidationError:
+            self.fail("Nomor rekening valid seharusnya tidak ditolak.")
