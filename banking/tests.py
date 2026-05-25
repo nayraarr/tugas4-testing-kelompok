@@ -37,18 +37,28 @@ class BankingAuthTests(TestCase):
         )
 
     def test_akses_halaman_transfer_tanpa_login(self):
-        """Uji apakah guest bisa akses transfer (Harus Gagal/Redirect)"""
         response = self.client.get(reverse('banking:transfer'))
-        self.assertEqual(response.status_code, 302) # Harus redirect ke login
+        self.assertEqual(response.status_code, 302)
 
     def test_proteksi_cache_halaman_mutasi(self):
-        """Uji @never_cache pada mutasi (Mitigasi Back-Button Attack)"""
         self.client.force_login(self.user)
         response = self.client.get(reverse('banking:mutasi'))
         
         self.assertEqual(response.status_code, 200)
         self.assertIn('no-cache', response.get('Cache-Control', ''))
         self.assertIn('no-store', response.get('Cache-Control', ''))
+
+    def test_nasabah_tidak_bisa_akses_halaman_supervisor(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('banking:laporan'))
+        
+        self.assertEqual(response.status_code, 302)
+
+    def test_nasabah_tidak_bisa_akses_halaman_staf(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('banking:antrian_topup'))
+        
+        self.assertEqual(response.status_code, 302)
 
 class CSRFTransferTest(TestCase):
     def setUp(self):
