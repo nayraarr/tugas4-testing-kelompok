@@ -25,9 +25,6 @@ class BrokenAuthMitigationTests(TestCase):
             last_name='User'
         )
 
-    # ========================================================
-    # 1. TEST MITIGASI CACHE (BACK-BUTTON ATTACK)
-    # ========================================================
     def test_halaman_login_tidak_di_cache(self):
         response = self.client.get(reverse('accounts:login'))
         self.assertEqual(response.status_code, 200)
@@ -42,10 +39,7 @@ class BrokenAuthMitigationTests(TestCase):
         response = self.client.get(reverse('accounts:register'))
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.has_header('Cache-Control'))
-
-    # ========================================================
-    # 2. TEST SESSION MANAGEMENT & FIXATION
-    # ========================================================
+    
     def test_session_id_berubah_saat_login(self):
         """Mencegah Session Fixation dengan validasi pergantian ID"""
         self.client.session.save()
@@ -69,9 +63,6 @@ class BrokenAuthMitigationTests(TestCase):
         self.assertNotIn('_auth_user_id', self.client.session)
         self.assertRedirects(response, reverse('accounts:login'))
 
-    # ========================================================
-    # 3. TEST GANTI PASSWORD (SESSION INVALIDATION)
-    # ========================================================
     def test_ganti_password_update_session_hash(self):
         self.client.force_login(self.user)
         
@@ -83,17 +74,13 @@ class BrokenAuthMitigationTests(TestCase):
                 
         self.assertIn('_auth_user_id', self.client.session)
         
-        # Uji login dari awal dengan password baru menggunakan sistem auth asli
         self.client.logout()
         response_login = self.client.post(reverse('accounts:login'), {
             'username': self.username,
             'password': 'SandiBaru123!@#'
         })
         self.assertRedirects(response_login, reverse('accounts:dashboard'))
-
-    # ========================================================
-    # 4. TEST BRUTE FORCE PROTECTION (DJANGO-AXES)
-    # ========================================================
+    
     def test_brute_force_lockout(self):
         for _ in range(7):
             response = self.client.post(reverse('accounts:login'), {
@@ -104,6 +91,35 @@ class BrokenAuthMitigationTests(TestCase):
         self.assertTemplateUsed(response, 'accounts/lockout.html')
         self.assertTrue(AccessAttempt.objects.filter(username=self.username).exists())
 
+    def test_pesan_error_login_ambigu(self):
+        res1 = self.client.post(reverse('accounts:login'), {
+            'username': 'user_ngaco_banget',
+            'password': 'Password123!'
+        })
+        
+        res2 = self.client.post(reverse('accounts:login'), {
+            'username': self.username,
+            'password': 'PasswordSalah123'
+        })
+        
+        error1 = str(res1.context['form'].errors)
+        error2 = str(res2.context['form'].errors)
+        
+        self.assertEqual(error1, error2, "Pesan error login tidak sama! Membocorkan informasi akun.")
+
+    def test_password_di_database_adalah_hash(self):
+        user_di_db = User.objects.get(username=self.username)
+        
+        self.assertNotEqual(
+            user_di_db.password, 
+            self.password, 
+            "BAHAYA: Password tersimpan sebagai plaintext!"
+        )
+        
+        self.assertTrue(
+            user_di_db.password.startswith('pbkdf2_sha256$'),
+            "Keamanan Kurang: Password tidak menggunakan hashing PBKDF2!"
+        )
 
 class CSRFLoginTest(TestCase):
     def setUp(self):

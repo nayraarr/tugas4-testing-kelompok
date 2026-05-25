@@ -35,24 +35,64 @@ coverage report
 | Module | Statements | Miss | Coverage |
 |--------|-----------|------|----------|
 | banking/validators.py | 16 | 0 | 100% |
-| banking/tests.py | 348 | 9 | 97% |
+| banking/tests.py | 356 | 9 | 97% |
 | banking/views.py | 217 | 66 | 70% |
 | banking/forms.py | 46 | 5 | 89% |
-| accounts/tests.py | 132 | 0 | 100% |
+| accounts/tests.py | 142 | 0 | 100% |
 | accounts/views.py | 143 | 49 | 66% |
-| **TOTAL** | **1313** | **255** | **81%** |
+| **TOTAL** | **1313** | **253** | **81%** |
 
 ### Ringkasan Hasil Test
 
 | Komponen | Jumlah Test | Passed | Failed |
 |----------|------------|--------|--------|
 | Code Injection Prevention | 16 | 16 | 0 |
-| Broken Authentication | 6 | 6 | 0 |
+| Broken Authentication | 12 | 12 | 0 |
 | CSRF Protection | 18 | 18 | 0 |
 | SQL Injection Prevention | 15 | 15 | 0 |
-| **Total** | **56** | **56** | **0** |
+| **Total** | **61** | **61** | **0** |
 
 ---
+### Detail Unit Test: Broken Authentication Mitigation
+
+**Fungsi yang diuji:** `login()`, `logout()`, `update_session_auth_hash()`, Session Management, Dekorator RBAC (`@login_required`, `@khusus_nasabah`, `@khusus_staf`, `@khusus_supervisor`), `@never_cache`, integrasi `django-axes`.
+
+#### TC-BA-01: Password Hashing Verification
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| test_password_di_database_adalah_hash | Data `User` dari database | Password bukan plaintext & diawali dengan `pbkdf2_sha256$` | PASS |
+
+#### TC-BA-02: Brute Force / Rate Limiting
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| test_brute_force_lockout | 7x POST `/login/` dengan kredensial salah | Redirect ke `lockout.html` & `AccessAttempt` terbuat | PASS |
+
+#### TC-BA-03: Session Management & Cache Invalidation
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| test_session_id_berubah_saat_login | POST `/login/` dengan kredensial valid | `session_key` baru tidak sama dengan `session_key` lama | PASS |
+| test_logout_menghancurkan_session | POST `/logout/` dengan session aktif | `_auth_user_id` terhapus dari session server | PASS |
+| test_ganti_password_update_session_hash | POST ganti sandi baru yang valid | Hash session terupdate (user tidak ter-logout) | PASS |
+| test_halaman_login_tidak_di_cache | GET `/login/` | Header `Cache-Control` mengandung `no-cache`, `no-store` | PASS |
+| test_halaman_registrasi_tidak_di_cache | GET `/register/` | Header `Cache-Control` mengandung `no-cache`, `no-store` | PASS |
+| test_proteksi_cache_halaman_mutasi | GET `/mutasi/` (halaman sensitif) | Header `Cache-Control` mengandung `no-cache`, `no-store` | PASS |
+
+#### TC-BA-04: Akses Terproteksi Tanpa Login & Least Privilege
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| test_akses_halaman_transfer_tanpa_login | GET `/transfer/` (tanpa session) | HTTP 302 Redirect ke `/login/` | PASS |
+| test_nasabah_tidak_bisa_akses_halaman_supervisor | GET `/laporan/` (session Nasabah) | HTTP 302 Redirect (akses ditolak) | PASS |
+| test_nasabah_tidak_bisa_akses_halaman_staf | GET `/antrian-topup/` (session Nasabah) | HTTP 302 Redirect (akses ditolak) | PASS |
+
+#### TC-BA-05: Informasi Error yang Tidak Informatif
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| test_pesan_error_login_ambigu | 1. Username salah<br>2. Username benar, password salah | Mengeluarkan string pesan error validasi yang sama persis | PASS |
 
 ### Detail Unit Test: Code Injection Prevention
 
