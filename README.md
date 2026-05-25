@@ -626,6 +626,7 @@ admin'--
 | 9 | /accounts/login/ | username | `1' ORDER BY 2--` | HTTP 200 : "Input mengandung karakter yang tidak diizinkan" (client-side validation) | Protected (client-side) |
 | 10 | /accounts/login/ | username | `1' UNION SELECT null--` | HTTP 200 : "Input mengandung karakter yang tidak diizinkan" (client-side validation) | Protected (client-side) |
 | 11 | /accounts/login/ | username | `1' UNION SELECT null,null--` | HTTP 200 : "Input mengandung karakter yang tidak diizinkan" (client-side validation) | Protected (client-side) |
+
 Catatan: Semua payload dimasukkan di field username. Field password diisi dengan nilai dummy (`test`) agar form dapat di-submit.
 
 > Screenshot: 
@@ -872,8 +873,6 @@ Jika SQL Injection berhasil dieksploitasi, penyerang dapat bypass autentikasi lo
 
 **Status:** Protected
 
-> Screenshot: ![alt text](image-26.png)
-
 ---
 
 #### Temuan #2 — XSS / Code Injection
@@ -919,15 +918,6 @@ Jika XSS berhasil, penyerang dapat mencuri cookie session nasabah lain, melakuka
 
 **Status:** Protected
 
-> Screenshot:
-![alt text](image-19.png)
-![alt text](image-20.png)
-![alt text](image-21.png)
-![alt text](image-22.png)
-![alt text](image-23.png)
-![alt text](image-24.png)
-![alt text](image-25.png)
-
 ---
 
 #### Temuan #3 — CSRF
@@ -964,10 +954,6 @@ Jika CSRF tidak diproteksi, penyerang dapat memaksa nasabah yang sedang login un
 - Pastikan `SameSite=Strict` atau minimal `SameSite=Lax` pada cookie (saat ini sudah `SameSite=Lax`)
 
 **Status:** Protected
-
-> Screenshot:
-![alt text](screenshots/exploitation/image-33.png)
-![alt text](screenshots/exploitation/image-34.png)
 
 ---
 
@@ -1008,14 +994,6 @@ Jika salah satu mekanisme di atas gagal, penyerang dapat mengakses data nasabah 
 - Pertahankan AXES lockout setelah 6 kali percobaan gagal
 
 **Status:** Protected
-
-> Screenshot:
-![alt text](screenshots/exploitation/image-27.png)
-![alt text](screenshots/exploitation/image-28.png)
-![alt text](screenshots/exploitation/image-29.png)
-![alt text](screenshots/exploitation/image-30.png)
-![alt text](screenshots/exploitation/image-31.png)
-![alt text](screenshots/exploitation/image-32.png)
 
 ---
 
