@@ -190,6 +190,7 @@ Mengumpulkan informasi tentang target aplikasi sebelum melakukan serangan.
 ##### 2.1.1 Analisis Teknologi Stack
 
 **Struktur Direktori Proyek:**
+```
 35_pkpassword123/
 ├── .env
 ├── .gitignore
@@ -227,13 +228,8 @@ Mengumpulkan informasi tentang target aplikasi sebelum melakukan serangan.
 │   ├── validators.py
 │   ├── views.py
 │   ├── migrations/
-│   │   ├── __init__.py
-│   │   └── 0001_initial.py
-│   └── management/               
 │       ├── __init__.py
-│       └── commands/
-│           ├── __init__.py
-│           └── seed.py           
+│       └── 0001_initial.py         
 ├── config/
 │   ├── __init__.py
 │   ├── asgi.py
@@ -276,7 +272,8 @@ Mengumpulkan informasi tentang target aplikasi sebelum melakukan serangan.
 │   ├── scanning/
 │   └── threat-modeling/
 ├── env/                          
-└── venv/                        
+└── venv/                 
+```       
 
 **Temuan dari settings.py:**
 
