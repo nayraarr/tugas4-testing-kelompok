@@ -153,42 +153,42 @@ coverage report
 
 | Test | Input | Expected | Status |
 |------|-------|----------|--------|
-| `test_login_bypass_or_username` | Username: `' OR '1'='1' --`, Password: `passwordbebas` | HTTP 200; user **tidak** terauthentikasi | ✅ PASS |
-| `test_login_bypass_or_password` | Username: `nasabah_valid`, Password: `' OR '1'='1` | HTTP 200; user **tidak** terauthentikasi | ✅ PASS |
-| `test_login_bypass_comment_injection` | Username: `nasabah_valid' --`, Password: `passwordbebas` | HTTP 200; user **tidak** terauthentikasi | ✅ PASS |
-| `test_login_bypass_tautologi` | Username: `' OR 1=1 --`, Password: `passwordbebas` | HTTP 200; user **tidak** terauthentikasi | ✅ PASS |
-| `test_login_union_select_username` | Username: `' UNION SELECT * FROM accounts_customuser --` | HTTP 200; user **tidak** terauthentikasi | ✅ PASS |
-| `test_login_valid_berhasil` | Username: `nasabah_valid`, Password: `SandiKuat123!` | HTTP 302 redirect ke dashboard; `_auth_user_id` ada di session | ✅ PASS |
+| `test_login_bypass_or_username` | Username: `' OR '1'='1' --`, Password: `passwordbebas` | HTTP 200; user **tidak** terauthentikasi | PASS |
+| `test_login_bypass_or_password` | Username: `nasabah_valid`, Password: `' OR '1'='1` | HTTP 200; user **tidak** terauthentikasi | PASS |
+| `test_login_bypass_comment_injection` | Username: `nasabah_valid' --`, Password: `passwordbebas` | HTTP 200; user **tidak** terauthentikasi | PASS |
+| `test_login_bypass_tautologi` | Username: `' OR 1=1 --`, Password: `passwordbebas` | HTTP 200; user **tidak** terauthentikasi | PASS |
+| `test_login_union_select_username` | Username: `' UNION SELECT * FROM accounts_customuser --` | HTTP 200; user **tidak** terauthentikasi | PASS |
+| `test_login_valid_berhasil` | Username: `nasabah_valid`, Password: `SandiKuat123!` | HTTP 302 redirect ke dashboard; `_auth_user_id` ada di session | PASS |
 
 #### TC-SQLi-02: Data Extraction via Search Input`
 | Test | Input | Expected | Status |
 |------|-------|----------|--------|
-| `test_halaman_kelola_rekening_search_with_sqli_payload` | `q`: `' UNION SELECT * FROM accounts_customuser --` | HTTP 200; ORM memblokir injeksi; tidak ada data bocor | ✅ PASS |
-| `test_transfer_rekening_tujuan_union_select_ditolak` | `rekening_tujuan`: `' UNION SELECT username,password FROM accounts_customuser --` | HTTP 400 Bad Request | ✅ PASS |
+| `test_halaman_kelola_rekening_search_with_sqli_payload` | `q`: `' UNION SELECT * FROM accounts_customuser --` | HTTP 200; ORM memblokir injeksi; tidak ada data bocor | PASS |
+| `test_transfer_rekening_tujuan_union_select_ditolak` | `rekening_tujuan`: `' UNION SELECT username,password FROM accounts_customuser --` | HTTP 400 Bad Request | PASS |
 
 #### TC-SQLi-03: Parameterized Query Verification (White-box)
 
 | Test | Input | Expected | Status |
 |------|-------|----------|--------|
-| `test_cari_rekening_manual_dengan_payload_sqli` | `nomor`: `1234567890' OR '1'='1` | `None`; query tidak dimanipulasi | ✅ PASS |
-| `test_cari_rekening_manual_dengan_input_valid` | `nomor`: `1234567890` | Data rekening ditemukan | ✅ PASS |
-| `test_transfer_nominal_sqli_payload_ditolak` | `nominal`: `1 OR 1=1` | HTTP 400; `Decimal()` gagal parsing | ✅ PASS |
-| `test_transfer_nominal_negatif_ditolak` | `nominal`: `-50000`, `0`, `-1` | HTTP 400 untuk setiap nilai | ✅ PASS |
-| `test_halaman_mutasi_filter_jenis_with_sqli_payload` | `jenis`: `' OR '1'='1` | HTTP 200; ORM meng-escape otomatis | ✅ PASS |
-| `test_halaman_mutasi_filter_periode_invalid_handled` | `periode`: `30; DROP TABLE banking_rekening --` | `ValueError` di-raise; `int()` gagal sebelum query | ✅ PASS |
-| `test_laporan_periode_drop_table_aman` | `periode`: `30; DROP TABLE banking_transaksi --` | `ValueError` di-raise; tabel tetap ada | ✅ PASS |
-| `test_laporan_periode_union_select_aman` | `periode`: `' UNION SELECT * FROM accounts_customuser --` | `ValueError` di-raise saat `int()` dipanggil | ✅ PASS |
-| `test_laporan_teller_filter_sqli_payload_aman` | `teller`: `1 OR 1=1` | `ValueError` / `Exception` dari Django ORM | ✅ PASS |
-| `test_laporan_periode_valid_200` | `periode`: `30`, `teller`: `` | HTTP 200 OK | ✅ PASS |
-| `test_laporan_periode_all_valid_200` | `periode`: `all`, `teller`: `` | HTTP 200 OK | ✅ PASS |
+| `test_cari_rekening_manual_dengan_payload_sqli` | `nomor`: `1234567890' OR '1'='1` | `None`; query tidak dimanipulasi | PASS |
+| `test_cari_rekening_manual_dengan_input_valid` | `nomor`: `1234567890` | Data rekening ditemukan | PASS |
+| `test_transfer_nominal_sqli_payload_ditolak` | `nominal`: `1 OR 1=1` | HTTP 400; `Decimal()` gagal parsing | PASS |
+| `test_transfer_nominal_negatif_ditolak` | `nominal`: `-50000`, `0`, `-1` | HTTP 400 untuk setiap nilai | PASS |
+| `test_halaman_mutasi_filter_jenis_with_sqli_payload` | `jenis`: `' OR '1'='1` | HTTP 200; ORM meng-escape otomatis | PASS |
+| `test_halaman_mutasi_filter_periode_invalid_handled` | `periode`: `30; DROP TABLE banking_rekening --` | `ValueError` di-raise; `int()` gagal sebelum query | PASS |
+| `test_laporan_periode_drop_table_aman` | `periode`: `30; DROP TABLE banking_transaksi --` | `ValueError` di-raise; tabel tetap ada | PASS |
+| `test_laporan_periode_union_select_aman` | `periode`: `' UNION SELECT * FROM accounts_customuser --` | `ValueError` di-raise saat `int()` dipanggil | PASS |
+| `test_laporan_teller_filter_sqli_payload_aman` | `teller`: `1 OR 1=1` | `ValueError` / `Exception` dari Django ORM | PASS |
+| `test_laporan_periode_valid_200` | `periode`: `30`, `teller`: `` | HTTP 200 OK | PASS |
+| `test_laporan_periode_all_valid_200` | `periode`: `all`, `teller`: `` | HTTP 200 OK | PASS |
 
 #### TC-SQLi-04c: Banking — Input Nomor Rekening Transfer
 
 | Test | Input | Expected | Status |
 |------|-------|----------|--------|
-| `test_transfer_raw_post_input_with_sqli_payload` | `rekening_tujuan`: `1234567890' OR '1'='1 --` | HTTP 400; ORM `get(nomor_rekening=...)` tidak menemukan rekening palsu | ✅ PASS |
-| `test_transfer_nominal_float_string_rekening_tidak_ada` | `nominal`: `50000.99`, `rekening_tujuan`: `9999999999` | HTTP 400; saldo tidak berubah | ✅ PASS |
-| `test_mutasi_rekening_user_tanpa_rekening_tidak_tampilkan_data_lain` | User tanpa rekening mengakses mutasi | `Exception` di-raise; data milik user lain tidak tampil | ✅ PASS |
+| `test_transfer_raw_post_input_with_sqli_payload` | `rekening_tujuan`: `1234567890' OR '1'='1 --` | HTTP 400; ORM `get(nomor_rekening=...)` tidak menemukan rekening palsu | PASS |
+| `test_transfer_nominal_float_string_rekening_tidak_ada` | `nominal`: `50000.99`, `rekening_tujuan`: `9999999999` | HTTP 400; saldo tidak berubah | PASS |
+| `test_mutasi_rekening_user_tanpa_rekening_tidak_tampilkan_data_lain` | User tanpa rekening mengakses mutasi | `Exception` di-raise; data milik user lain tidak tampil | PASS |
 
 ### Detail Unit Test: CSRF Protection Prevention
 **Fungsi yang diuji:** `CsrfViewMiddleware`, endpoint `login()`, `register()`, `logout()`, `ganti_password()`, `edit_profil()`, `tambah_user()`, `toggle_aktif_user()` *(accounts/views.py)*, `transfer()`, `topup()`, `proses_transfer()`, `proses_topup()`, `toggle_rekening()` *(banking/views.py)*
