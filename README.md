@@ -38,9 +38,9 @@ coverage report
 | banking/tests.py | 356 | 9 | 97% |
 | banking/views.py | 217 | 66 | 70% |
 | banking/forms.py | 46 | 5 | 89% |
-| accounts/tests.py | 171 | 0 | 100% |
+| accounts/tests.py | 142 | 0 | 100% |
 | accounts/views.py | 143 | 49 | 66% |
-| **TOTAL** | **1360** | **253** | **81%** |
+| **TOTAL** | **1331** | **253** | **81%** |
 
 ### Ringkasan Hasil Test
 
@@ -189,6 +189,68 @@ coverage report
 | `test_transfer_raw_post_input_with_sqli_payload` | `rekening_tujuan`: `1234567890' OR '1'='1 --` | HTTP 400; ORM `get(nomor_rekening=...)` tidak menemukan rekening palsu | ✅ PASS |
 | `test_transfer_nominal_float_string_rekening_tidak_ada` | `nominal`: `50000.99`, `rekening_tujuan`: `9999999999` | HTTP 400; saldo tidak berubah | ✅ PASS |
 | `test_mutasi_rekening_user_tanpa_rekening_tidak_tampilkan_data_lain` | User tanpa rekening mengakses mutasi | `Exception` di-raise; data milik user lain tidak tampil | ✅ PASS |
+
+### Detail Unit Test: CSRF Protection Prevention
+**Fungsi yang diuji:** `CsrfViewMiddleware`, endpoint `login()`, `register()`, `logout()`, `ganti_password()`, `edit_profil()`, `tambah_user()`, `toggle_aktif_user()` *(accounts/views.py)*, `transfer()`, `topup()`, `proses_transfer()`, `proses_topup()`, `toggle_rekening()` *(banking/views.py)*
+
+#### TC-CSRF-01: Proteksi CSRF pada Endpoint Autentikasi
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| `test_login_tanpa_token_csrf_ditolak` | POST `/accounts/login/` tanpa `csrfmiddlewaretoken` | HTTP 403 Forbidden | ✅ PASS |
+| `test_login_method_get_tidak_perlu_csrf` | GET `/accounts/login/` tanpa token | Bukan HTTP 403 | ✅ PASS |
+| `test_registrasi_tanpa_token_csrf_ditolak` | POST `/accounts/register/` tanpa `csrfmiddlewaretoken` | HTTP 403 Forbidden | ✅ PASS |
+| `test_registrasi_method_get_tidak_perlu_csrf` | GET `/accounts/register/` tanpa token | Bukan HTTP 403 | ✅ PASS |
+| `test_ganti_sandi_tanpa_token_csrf_ditolak` | POST `/accounts/ganti-password/` tanpa `csrfmiddlewaretoken` (session Nasabah aktif) | HTTP 403 Forbidden | ✅ PASS |
+| `test_ganti_sandi_method_get_tidak_perlu_csrf` | GET `/accounts/ganti-password/` tanpa token | Bukan HTTP 403 | ✅ PASS |
+| `test_logout_tanpa_token_csrf_ditolak` | POST `/accounts/logout/` tanpa `csrfmiddlewaretoken` (session Nasabah aktif) | HTTP 403 Forbidden | ✅ PASS |
+
+
+#### TC-CSRF-02: Proteksi CSRF pada Manajemen Profil & Pengguna
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| `test_edit_profil_tanpa_token_csrf_ditolak` | POST `/accounts/profil/` tanpa `csrfmiddlewaretoken` (session Nasabah) | HTTP 403 Forbidden | ✅ PASS |
+| `test_edit_profil_method_get_tidak_perlu_csrf` | GET `/accounts/profil/` tanpa token | Bukan HTTP 403 | ✅ PASS |
+| `test_tambah_pengguna_tanpa_token_csrf_ditolak` | POST `/accounts/tambah-user/` tanpa `csrfmiddlewaretoken` (session Supervisor) | HTTP 403 Forbidden | ✅ PASS |
+| `test_tambah_pengguna_method_get_tidak_perlu_csrf` | GET `/accounts/tambah-user/` tanpa token | Bukan HTTP 403 | ✅ PASS |
+| `test_toggle_pengguna_tanpa_token_csrf_ditolak` | POST `/accounts/toggle-aktif/<pk>/` tanpa `csrfmiddlewaretoken` (session Supervisor) | HTTP 403 Forbidden | ✅ PASS |
+| `test_status_pengguna_tidak_berubah_tanpa_csrf` | POST `/accounts/toggle-aktif/<pk>/` tanpa token (session Supervisor) | `is_active` user target tidak berubah | ✅ PASS |
+
+
+#### TC-CSRF-03: Proteksi CSRF pada Transaksi Transfer Nasabah
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| `test_transfer_tanpa_token_csrf_ditolak` | POST `/banking/transfer/` tanpa `csrfmiddlewaretoken` (session Nasabah) | HTTP 403 Forbidden | ✅ PASS |
+| `test_transfer_dengan_token_csrf_valid_diterima` | POST `/banking/transfer/` dengan token valid + data transfer valid | Bukan HTTP 403 | ✅ PASS |
+| `test_transfer_method_get_tidak_perlu_csrf` | GET `/banking/transfer/` tanpa token | Bukan HTTP 403 | ✅ PASS |
+| `test_transaksi_tidak_terbuat_jika_csrf_gagal` | POST `/banking/transfer/` tanpa token | `Transaksi.objects.count()` tidak bertambah | ✅ PASS |
+| `test_saldo_pengirim_tidak_berkurang_jika_csrf_gagal` | POST `/banking/transfer/` tanpa token | Saldo rekening pengirim tidak berkurang | ✅ PASS |
+
+#### TC-CSRF-04: Proteksi CSRF pada Pengajuan Top-Up Nasabah
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| `test_topup_tanpa_token_csrf_ditolak` | POST `/banking/topup/` tanpa `csrfmiddlewaretoken` (session Nasabah) | HTTP 403 Forbidden | ✅ PASS |
+| `test_topup_dengan_token_csrf_valid_diterima` | POST `/banking/topup/` dengan token valid + nominal valid | Bukan HTTP 403 | ✅ PASS |
+| `test_topup_tidak_terbuat_jika_csrf_gagal` | POST `/banking/topup/` tanpa token | `TopUp.objects.count()` tidak bertambah | ✅ PASS |
+
+#### TC-CSRF-05: Proteksi CSRF pada Operasi Teller (Proses Transfer & Top-Up)
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| `test_approve_transfer_tanpa_token_csrf_ditolak` | POST `/banking/proses-transfer/<pk>/` tanpa `csrfmiddlewaretoken` (session Teller) | HTTP 403 Forbidden | ✅ PASS |
+| `test_status_transaksi_tetap_pending_jika_csrf_gagal` | POST `/banking/proses-transfer/<pk>/` tanpa token | `transaksi.status` tetap `'pending'` | ✅ PASS |
+| `test_approve_topup_tanpa_token_csrf_ditolak` | POST `/banking/proses-topup/<pk>/` tanpa `csrfmiddlewaretoken` (session Teller) | HTTP 403 Forbidden | ✅ PASS |
+| `test_status_topup_tetap_pending_jika_csrf_gagal` | POST `/banking/proses-topup/<pk>/` tanpa token | `topup.status` tetap `'pending'` | ✅ PASS |
+
+
+#### TC-CSRF-06: Proteksi CSRF pada Toggle Status Rekening
+
+| Test | Input | Expected | Status |
+|------|-------|----------|--------|
+| `test_toggle_rekening_tanpa_token_csrf_ditolak` | POST `/banking/toggle-rekening/<pk>/` tanpa `csrfmiddlewaretoken` (session Supervisor) | HTTP 403 Forbidden | ✅ PASS |
+| `test_status_rekening_tidak_berubah_jika_csrf_gagal` | POST `/banking/toggle-rekening/<pk>/` tanpa token | `rekening.aktif` tidak berubah | ✅ PASS |
 
 ---
 
