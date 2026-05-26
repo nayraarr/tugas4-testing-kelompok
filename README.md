@@ -40,7 +40,7 @@ coverage report
 | banking/forms.py | 46 | 5 | 89% |
 | accounts/tests.py | 171 | 0 | 100% |
 | accounts/views.py | 143 | 49 | 66% |
-| **TOTAL** | **1342** | **253** | **81%** |
+| **TOTAL** | **1360** | **253** | **81%** |
 
 ### Ringkasan Hasil Test
 
